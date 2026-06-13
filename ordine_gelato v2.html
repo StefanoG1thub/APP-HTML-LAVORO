@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ordine Gelato">
+<title>Ordine Gelato Lattebusche</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f0f4f8;
+    min-height: 100vh;
+    padding: 1.5rem 1rem 3rem;
+  }
+  header { text-align: center; margin-bottom: 1.5rem; }
+  header h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
+  header p { font-size: 13px; color: #6b7280; margin-top: 4px; }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .prodotto {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 0.5px solid #f0f0f0;
+  }
+  .prodotto:last-child { border-bottom: none; }
+  .nome { font-size: 15px; color: #1a1a2e; font-weight: 500; flex: 1; }
+  .prodotto input[type=number] {
+    width: 64px;
+    padding: 6px 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #f9fafb;
+    color: #1a1a2e;
+    -webkit-appearance: none;
+  }
+  .prodotto input[type=number]:focus {
+    outline: none;
+    border-color: #0d9488;
+  }
+  .fardelli {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-left: 6px;
+    white-space: nowrap;
+  }
+  .btn-invia {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: #25D366;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 0.5rem;
+  }
+  .btn-invia:active { background: #1da851; }
+  .nota {
+    font-size: 12px;
+    color: #9ca3af;
+    text-align: center;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧊 Ordine Gelato</h1>
+  <p>Lattebusche — inserisci i fardelli e invia</p>
+</header>
+
+<div class="card">
+  <div class="prodotto">
+    <span class="nome">Stracciatella</span>
+    <input type="number" id="p0" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+  <div class="prodotto">
+    <span class="nome">Panna</span>
+    <input type="number" id="p1" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+  <div class="prodotto">
+    <span class="nome">Limone</span>
+    <input type="number" id="p2" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+  <div class="prodotto">
+    <span class="nome">Yogurt B.</span>
+    <input type="number" id="p3" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+  <div class="prodotto">
+    <span class="nome">Caramello S.</span>
+    <input type="number" id="p4" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+  <div class="prodotto">
+    <span class="nome">Crokko Lam.</span>
+    <input type="number" id="p5" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+  <div class="prodotto">
+    <span class="nome">Cono Panna</span>
+    <input type="number" id="p6" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+  <div class="prodotto">
+    <span class="nome">Biscotto Panna</span>
+    <input type="number" id="p7" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+  <div class="prodotto">
+    <span class="nome">Ricoperto</span>
+    <input type="number" id="p8" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+  <div class="prodotto">
+    <span class="nome">Sorbetto Caf.</span>
+    <input type="number" id="p9" min="0" value="0" placeholder="0">
+    <span class="fardelli">fard.</span>
+  </div>
+</div>
+
+<button class="btn-invia" onclick="invia()">
+  📲 Invia ordine su WhatsApp
+</button>
+
+<p class="nota">Il messaggio si aprirà pronto in WhatsApp</p>
+
+<script>
+var nomi = [
+  "Stracciatella","Panna","Limone","Yogurt B.",
+  "Caramello S.","Crokko Lam.","Cono Panna",
+  "Biscotto Panna","Ricoperto","Sorbetto Caf."
+];
+function invia() {
+  var righe = [];
+  for (var i = 0; i < 10; i++) {
+    var v = parseInt(document.getElementById("p"+i).value) || 0;
+    if (v > 0) righe.push("• " + nomi[i] + ": " + v + (v===1?" fardello":" fardelli"));
+  }
+  if (righe.length === 0) { alert("Inserisci almeno un prodotto."); return; }
+  var testo = "🧊 *Ordine Gelato Lattebusche*\n\n" + righe.join("\n") + "\n\nGrazie!";
+  window.location.href = "https://wa.me/?text=" + encodeURIComponent(testo);
+}
+</script>
+
+</body>
+</html>
