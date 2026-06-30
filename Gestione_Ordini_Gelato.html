@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ordini Gelato">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Gestione Ordini Gelato</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --ink:#1c2a1f;
+  --panna:#faf6ee;
+  --panna-card:#ffffff;
+  --pistacchio:#5c8c5a;
+  --pistacchio-dark:#3f6b3e;
+  --amarena:#a8333f;
+  --amarena-dark:#862631;
+  --caramello:#c98a3a;
+  --linea:#e3dccb;
+  --grigio:#8a8478;
+  --ombra:0 2px 8px rgba(28,42,31,0.08);
+  --radius:14px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+body{
+  margin:0; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Segoe UI,Roboto,sans-serif;
+  background:var(--panna); color:var(--ink); -webkit-font-smoothing:antialiased;
+  padding-bottom:40px;
+}
+header{
+  background:var(--pistacchio-dark); color:#fff; padding:16px 18px 14px;
+  position:sticky; top:0; z-index:50; box-shadow:var(--ombra);
+}
+header h1{margin:0; font-size:1.15rem; font-weight:700; letter-spacing:-0.2px;}
+header .sub{font-size:0.78rem; opacity:0.85; margin-top:2px;}
+.tabbar{
+  display:flex; gap:6px; padding:10px 12px 0; background:var(--pistacchio-dark);
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+}
+.tabbar button{
+  flex:0 0 auto; background:rgba(255,255,255,0.12); color:#fff; border:none;
+  padding:9px 16px; border-radius:10px 10px 0 0; font-size:0.85rem; font-weight:600;
+  cursor:pointer; white-space:nowrap; transition:background .15s;
+}
+.tabbar button.active{background:var(--panna); color:var(--pistacchio-dark);}
+main{padding:14px 12px 0; max-width:1100px; margin:0 auto;}
+
+/* Schermi larghi (iPad orizzontale/verticale, desktop): l'app si espande e scala
+   proporzionalmente per riempire lo spazio disponibile, invece di restare
+   "piccola" al centro come su un telefono. */
+@media (min-width: 900px){
+  main{max-width:1320px; padding:20px 28px 0;}
+  header{padding:22px 28px 18px;}
+  header h1{font-size:1.5rem;}
+  header .sub{font-size:0.95rem;}
+  .tabbar{padding:14px 24px 0;}
+  .tabbar button{padding:13px 26px; font-size:1.05rem;}
+  .card{padding:24px; margin-bottom:18px;}
+  .card h2{font-size:1.3rem;}
+  .btn{padding:14px 24px; font-size:1.08rem;}
+  .btn-sm{padding:9px 16px; font-size:0.95rem;}
+  select, input[type=text], input[type=number]{font-size:1.08rem; padding:11px 14px;}
+  .pill{font-size:0.95rem; padding:8px 16px;}
+  table{font-size:1.02rem;}
+  thead th{padding:13px 12px;}
+  tbody td{padding:11px 12px;}
+  .modal{max-width:900px; padding:26px 24px 32px;}
+  .modal h3{font-size:1.3rem;}
+  .modal .modal-sub{font-size:0.95rem;}
+  .preview-row{font-size:1rem; padding:11px 8px;}
+  .note-box{font-size:0.92rem; padding:11px 16px;}
+  .badge{font-size:0.8rem; padding:3px 10px;}
+}
+
+@media (min-width: 1300px){
+  main{max-width:1500px;}
+  header h1{font-size:1.7rem;}
+  .card h2{font-size:1.45rem;}
+  table{font-size:1.1rem;}
+}
+.card{
+  background:var(--panna-card); border-radius:var(--radius); box-shadow:var(--ombra);
+  padding:16px; margin-bottom:14px;
+}
+.card h2{margin:0 0 10px; font-size:1rem; font-weight:700; color:var(--pistacchio-dark);}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.btn{
+  display:inline-flex; align-items:center; gap:6px; border:none; border-radius:10px;
+  padding:11px 18px; font-size:0.92rem; font-weight:600; cursor:pointer;
+  transition:transform .08s, opacity .15s; -webkit-user-select:none; user-select:none;
+}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--pistacchio); color:#fff;}
+.btn-primary:hover{background:var(--pistacchio-dark);}
+.btn-secondary{background:var(--linea); color:var(--ink);}
+.btn-danger{background:var(--amarena); color:#fff;}
+.btn-ghost{background:transparent; color:var(--pistacchio-dark); border:1.5px solid var(--pistacchio);}
+.btn-sm{padding:7px 12px; font-size:0.8rem;}
+.btn:disabled{opacity:0.4; cursor:default;}
+input[type=file]{display:none;}
+select, input[type=text], input[type=number]{
+  font-family:inherit; font-size:0.95rem; padding:9px 11px; border:1.5px solid var(--linea);
+  border-radius:9px; background:#fff; color:var(--ink);
+}
+.pill{
+  display:inline-flex; align-items:center; gap:6px; background:var(--linea);
+  border-radius:20px; padding:6px 12px; font-size:0.82rem; font-weight:600;
+}
+.pill .x{
+  cursor:pointer; color:var(--amarena); font-weight:800; padding:0 2px;
+}
+table{width:100%; border-collapse:collapse; font-size:0.86rem;}
+thead th{
+  background:var(--pistacchio-dark); color:#fff; padding:9px 8px; text-align:center;
+  font-weight:600; position:sticky; top:0; white-space:nowrap;
+}
+thead th.rowlabel{text-align:left; position:sticky; left:0; z-index:2;}
+tbody td{padding:7px 8px; text-align:center; border-bottom:1px solid var(--linea);}
+tbody td.rowlabel{
+  text-align:left; font-weight:600; position:sticky; left:0; background:var(--panna-card);
+  z-index:1; white-space:nowrap;
+}
+tbody tr:nth-child(even){background:#fbf9f4;}
+tbody tr:nth-child(even) td.rowlabel{background:#fbf9f4;}
+tbody tr.cat-header td{
+  background:var(--pistacchio); color:#fff; font-weight:700; text-align:left;
+  position:static;
+}
+.tablewrap{overflow-x:auto; border-radius:10px; border:1px solid var(--linea); max-height:70vh; overflow-y:auto;}
+td.tot, th.tot{background:#f0ead9 !important; font-weight:800; color:var(--amarena) !important;}
+td.qty-cell{font-weight:600; color:var(--pistacchio-dark);}
+td.qty-zero{color:#c4bdaa;}
+.empty-state{
+  text-align:center; padding:40px 20px; color:var(--grigio);
+}
+.empty-state .icon{font-size:2.6rem; margin-bottom:10px;}
+.badge{
+  display:inline-block; font-size:0.7rem; font-weight:700; padding:2px 8px;
+  border-radius:6px; background:var(--caramello); color:#fff; margin-left:6px;
+}
+.badge.lando{background:var(--amarena);}
+.badge.coop{background:var(--pistacchio-dark);}
+.badge.sarcedo{background:var(--caramello);}
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(20,30,20,0.55); z-index:200;
+  display:flex; align-items:flex-end; justify-content:center;
+}
+.modal{
+  background:var(--panna); border-radius:18px 18px 0 0; width:100%; max-width:700px;
+  max-height:88vh; overflow-y:auto; padding:18px 16px 24px; animation:slideup .2s ease-out;
+}
+@keyframes slideup{from{transform:translateY(30px); opacity:0;} to{transform:translateY(0); opacity:1;}}
+.modal h3{margin:0 0 4px; font-size:1.05rem;}
+.modal .modal-sub{color:var(--grigio); font-size:0.82rem; margin-bottom:14px;}
+.preview-row{
+  display:grid; grid-template-columns:1fr 70px 90px 30px; gap:8px; align-items:center;
+  padding:8px 6px; border-bottom:1px solid var(--linea); font-size:0.86rem;
+}
+.preview-row.header-row{font-weight:700; color:var(--pistacchio-dark); font-size:0.78rem;}
+.preview-row input[type=number]{width:100%; padding:6px 8px; text-align:center;}
+.preview-row .codice{font-size:0.72rem; color:var(--grigio); font-weight:600;}
+.preview-row .warn{color:var(--amarena); font-size:0.7rem;}
+.preview-row .del-row{color:var(--amarena); font-size:1.1rem; cursor:pointer; text-align:center;}
+.modal-actions{display:flex; gap:10px; margin-top:16px; position:sticky; bottom:0; background:var(--panna); padding-top:10px;}
+.modal-actions .btn{flex:1; justify-content:center;}
+.dropzone{
+  border:2px dashed var(--pistacchio); border-radius:12px; padding:30px 16px; text-align:center;
+  color:var(--pistacchio-dark); cursor:pointer; background:#f4f9f2; font-weight:600;
+}
+.dropzone.drag{background:#e7f3e4;}
+.toast{
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--ink);
+  color:#fff; padding:11px 20px; border-radius:10px; font-size:0.88rem; z-index:300;
+  box-shadow:0 4px 16px rgba(0,0,0,0.25); max-width:90%; text-align:center;
+}
+.section-title{font-size:0.78rem; font-weight:700; color:var(--grigio); text-transform:uppercase; letter-spacing:0.4px; margin:18px 0 8px;}
+.client-list{display:flex; flex-wrap:wrap; gap:8px;}
+.spinner{
+  display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.4);
+  border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.note-box{background:#fdf6e3; border-left:3px solid var(--caramello); padding:8px 12px; border-radius:0 8px 8px 0; font-size:0.8rem; color:#6b5318; margin-bottom:10px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+    <div>
+      <h1>🍨 Gestione Ordini Gelato</h1>
+      <div class="sub" id="dateLabel"></div>
+    </div>
+    <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
+  </div>
+</header>
+
+<div class="tabbar" id="tabbar"></div>
+
+<main id="mainContent"></main>
+
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+
+// Catalogo prodotti Lattebusche - codice: {nome, categoria, ordine secondo elenco ufficiale}
+// Sequenza e descrizioni come da "Elenco Gelato Lattebusche" ufficiale
+const CATALOGO = {
+  // ===== Vasca 500 gr. (sequenza ufficiale 1-19) =====
+  4001: {nome:"Panna Cacao", cat:"500", seq:1},
+  4002: {nome:"Fragola Limone", cat:"500", seq:2},
+  4003: {nome:"Pistacchio Nocciola", cat:"500", seq:3},
+  4004: {nome:"Stracciatella", cat:"500", seq:4},
+  4005: {nome:"Crokko Menta", cat:"500", seq:5},
+  4006: {nome:"Fiordipanna", cat:"500", seq:6},
+  4007: {nome:"Strudel var. Mela Cannella", cat:"500", seq:7},
+  4009: {nome:"Limone", cat:"500", seq:8},
+  4010: {nome:"Yogurt ai Frutti di Bosco", cat:"500", seq:9},
+  4014: {nome:"Caramello Salato", cat:"500", seq:10},
+  4015: {nome:"Crokko Lampone", cat:"500", seq:11},
+  4018: {nome:"Gran Nocciolato", cat:"500", seq:12},
+  4020: {nome:"Panna variegato Amarena", cat:"500", seq:13},
+  4023: {nome:"Mascarpone variegato Pera", cat:"500", seq:14},
+  4024: {nome:"Ricotta variegato Arancio", cat:"500", seq:15},
+  4605: {nome:"Tiramisù", cat:"500", seq:16},
+  4882: {nome:"Panna Cacao Bio", cat:"500", seq:17, colore:"verde"},
+  4883: {nome:"Crema Vaniglia Bio", cat:"500", seq:18, colore:"verde"},
+  4926: {nome:"Fiordipanna senza lattosio", cat:"500", seq:19, colore:"azzurro"},
+
+  // ===== Vasca 1000 gr. (sequenza ufficiale 1-8) =====
+  4032: {nome:"Yogurt ai Frutti di Bosco", cat:"1000", seq:1},
+  4051: {nome:"Panna Cacao", cat:"1000", seq:2},
+  4052: {nome:"Fragola Limone", cat:"1000", seq:3},
+  4054: {nome:"Stracciatella", cat:"1000", seq:4},
+  4055: {nome:"Limone", cat:"1000", seq:5},
+  4057: {nome:"Fiordipanna", cat:"1000", seq:6},
+  4058: {nome:"Panna variegato Amarena", cat:"1000", seq:7},
+  4301: {nome:"Caramello Salato", cat:"1000", seq:8},
+
+  // ===== Coni (sequenza ufficiale 1-6) =====
+  4401: {nome:"Panna", cat:"coni", seq:1},
+  4402: {nome:"Amarena", cat:"coni", seq:2},
+  4403: {nome:"Panna Cacao", cat:"coni", seq:3},
+  4431: {nome:"Yogurt ai Frutti di Bosco", cat:"coni", seq:4},
+  4555: {nome:"Croccante alle Mandorle X5", cat:"coni", seq:5},
+  4556: {nome:"Caffè X5", cat:"coni", seq:6},
+
+  // ===== Biscotti (sequenza ufficiale 1-3) =====
+  4406: {nome:"Panna-Cacao X8", cat:"biscotti", seq:1},
+  4407: {nome:"Panna X5", cat:"biscotti", seq:2},
+  4723: {nome:"Panna Scaglie Cioccolato X8", cat:"biscotti", seq:3},
+
+  // ===== Mini (sequenza ufficiale 1-4) =====
+  4400: {nome:"Minicono", cat:"mini", seq:1},
+  4409: {nome:"Minibiscotto", cat:"mini", seq:2},
+  4508: {nome:"Ministecco", cat:"mini", seq:3},
+  4513: {nome:"Ministecco Mandorle", cat:"mini", seq:4},
+
+  // ===== Stecchi (sequenza ufficiale 1-3) =====
+  4423: {nome:"Ricoperto", cat:"stecchi", seq:1},
+  4501: {nome:"Ricoperto Menta", cat:"stecchi", seq:2},
+  4515: {nome:"Ricoperto al Lampone", cat:"stecchi", seq:3},
+
+  // ===== Sorbetto (sequenza ufficiale 1-3) =====
+  4979: {nome:"Caffè", cat:"sorbetti", seq:1},
+  4984: {nome:"Limone", cat:"sorbetti", seq:2},
+  4989: {nome:"Liquirizia", cat:"sorbetti", seq:3},
+
+  // ===== Crema Caffè (sequenza ufficiale 1) — dicitura Lando mantenuta per evitare ambiguità sul campo =====
+  4193: {nome:"Sorbetto Caffè 1KG BAR (Crema Caffè)", cat:"crema_caffe", seq:1},
+
+  // Codici speciali Coop Alleanza (non hanno equivalente diretto a 4 cifre, equiv. indicato)
+  12162: {nome:"Crokko Menta (Coop)", cat:"500", seq:5.5, note:"cod. interno Coop", equivalente:4005},
+  12189: {nome:"Panna Cacao (Coop)", cat:"500", seq:1.5, note:"cod. interno Coop", equivalente:4001},
+  12231: {nome:"Ricoperto Menta (Coop)", cat:"stecchi", seq:2.5, note:"cod. interno Coop", equivalente:4501},
+
+  // Codice legacy RDA Veneta: "Cono Crema Oro" 6pz, sostituito dal nuovo "Croccante Mandorle" 5pz (4555).
+  // RDA non ha aggiornato il proprio gestionale e ordina ancora col vecchio codice.
+  4408: {nome:"Cono Crema Oro (RDA, ex)", cat:"coni", seq:5.5, note:"cod. legacy RDA", equivalente:4555},
+};
+
+const CATEGORIE = {
+  "500": "Vasca 500 gr.",
+  "1000": "Vasca 1000 gr.",
+  "coni": "Coni",
+  "biscotti": "Biscotti",
+  "mini": "Mini",
+  "stecchi": "Stecchi",
+  "sorbetti": "Sorbetto",
+  "crema_caffe": "Crema Caffè",
+};
+
+// Ordine delle categorie come da elenco ufficiale
+const ORDINE_CATEGORIE = ["500","1000","coni","biscotti","mini","stecchi","sorbetti","crema_caffe"];
+
+// Variante che include anche i codici interni Coop, nella loro posizione di categoria/sequenza
+function codiciOrdinatiConCoop(){
+  return Object.keys(CATALOGO).sort((a,b) => {
+    const A = CATALOGO[a], B = CATALOGO[b];
+    const ia = ORDINE_CATEGORIE.indexOf(A.cat), ib = ORDINE_CATEGORIE.indexOf(B.cat);
+    if (ia !== ib) return ia - ib;
+    return A.seq - B.seq;
+  });
+}
+
+// Restituisce i codici prodotto ordinati per categoria ufficiale, poi per sequenza ufficiale
+// Esclude i codici interni Coop (note-tagged) dalla vista standard
+function codiciOrdinatiUfficiale(){
+  return codiciOrdinatiConCoop().filter(c => !CATALOGO[c].note);
+}
+
+// Calendario Lando fisso settimanale
+const CALENDARIO_LANDO = {
+  1: ["Veggiano", "Cittadella"],           // Lunedì
+  2: ["Camposampiero", "Mirano", "Cazzago", "Vigonza", "Camin"], // Martedì
+  3: ["Conselve"],                          // Mercoledì
+  4: ["Cittadella"],                        // Giovedì
+  5: ["Camposampiero", "Mirano", "Cazzago", "Vigonza", "Camin"], // Venerdì
+};
+
+const PUNTI_LANDO = ["Veggiano","Cittadella","Camposampiero","Mirano","Cazzago","Vigonza","Camin","Conselve"];
+
+
+// ===== Motore di estrazione testo PDF (pdf.js) =====
+if (window['pdfjsLib']) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+async function estraiTestoPDF(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  let testo = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    // Ricostruzione riga per riga basata su coordinate Y (pdf.js non garantisce ordine di lettura naturale)
+    const items = content.items.map(it => ({
+      str: it.str,
+      x: it.transform[4],
+      y: Math.round(it.transform[5])
+    }));
+    // Raggruppa per riga (stessa Y, con tolleranza)
+    items.sort((a,b) => b.y - a.y || a.x - b.x);
+    let righe = [];
+    let rigaCorrente = [];
+    let yCorrente = null;
+    const TOLL = 3;
+    for (const it of items) {
+      if (yCorrente === null || Math.abs(it.y - yCorrente) <= TOLL) {
+        rigaCorrente.push(it);
+        yCorrente = yCorrente === null ? it.y : yCorrente;
+      } else {
+        righe.push(rigaCorrente);
+        rigaCorrente = [it];
+        yCorrente = it.y;
+      }
+    }
+    if (rigaCorrente.length) righe.push(rigaCorrente);
+    for (const riga of righe) {
+      riga.sort((a,b) => a.x - b.x);
+      testo += riga.map(it => it.str).join(" ").replace(/\s+/g, " ").trim() + "\n";
+    }
+  }
+  return testo;
+}
+
+// ===== Parser per formato =====
+
+function parseSarcedo(testo) {
+  const righe = [];
+  // Colonne sul PDF: Codice Descrizione ... Colli Quantità PZ
+  // Si usa COLLI (m[3]) come valore operativo di carico, non Quantità (m[4], pezzi sciolti)
+  const re = /(\d{4,5})\s+(.+?)\s+([\d,]+)\s+([\d,]+)\s+PZ/g;
+  let m;
+  while ((m = re.exec(testo)) !== null) {
+    const codice = parseInt(m[1]);
+    const qta = Math.round(parseFloat(m[3].replace(',', '.'))); // Colli
+    if (CATALOGO[codice]) {
+      righe.push({codice, qta, descrizione_pdf: m[2].trim()});
+    }
+  }
+  return righe;
+}
+
+function parseCoopAlleanza(testo) {
+  const righe = [];
+  // Colonne sul PDF: Descrizione DataConsegna Cod.Uso Cod.Art. U.M. PzCart. N.Cart. QTA
+  // Si usa N.CART. (m[6]) come valore operativo di carico (numero di fardelli/cartoni),
+  // non QTA (m[7], che è il totale pezzi sciolti = PzCart. x N.Cart.)
+  const re = /(.+?)\s+(\d{2}\/\d{2}\/\d{4})\s+(\d{4,6})\s+(\d{7,10})\s+PZ\s+(\d+)\s+(\d+)\s+(\d+)/g;
+  let m;
+  while ((m = re.exec(testo)) !== null) {
+    const codice = parseInt(m[3]);
+    const qta = parseInt(m[6]); // N. Cart.
+    if (CATALOGO[codice]) {
+      righe.push({codice, qta, descrizione_pdf: m[1].trim()});
+    }
+  }
+  // Estrai punto vendita destinatario: compare dopo "Fornitore: LATTEBUSCHE SCA" sulla stessa riga,
+  // oppure sulla riga immediatamente successiva a "DESTINATARIO MERCE E FATTURA:"
+  let cliente = null;
+  const destMatch1 = testo.match(/Fornitore:\s*LATTEBUSCHE\s*SCA\s+([A-ZÀ-Ù0-9.\s'()]+?)\s*\n/i);
+  const destMatch2 = testo.match(/DESTINATARIO MERCE E FATTURA:\s*\n\s*(.+?)\s*\n/i);
+  if (destMatch1 && destMatch1[1].trim()) cliente = destMatch1[1].trim();
+  else if (destMatch2) cliente = destMatch2[1].trim();
+  const numOrdineMatch = testo.match(/Numero Ordine:\s*(\d+)/);
+  const dataConsegnaMatch = testo.match(/Data Consegna:\s*(\d{2}\/\d{2}\/\d{4})/);
+  return {righe, cliente, numOrdine: numOrdineMatch ? numOrdineMatch[1] : null, dataConsegna: dataConsegnaMatch ? dataConsegnaMatch[1] : null};
+}
+
+function parseLando(testo) {
+  const righe = [];
+  const re = /(\d{4})\s+\((\d+MERC)\)-[\s\S]*?\n[\s\S]*?CTx(\d+)\s+([\d,]+)/g;
+  let m;
+  while ((m = re.exec(testo)) !== null) {
+    const codice = parseInt(m[1]);
+    const qta = Math.round(parseFloat(m[4].replace(',', '.')));
+    if (CATALOGO[codice]) {
+      righe.push({codice, qta});
+    }
+  }
+  const puntoMatch = testo.match(/PUNTO DI CONSEGNA:\s*([A-ZÀ-Ù\s]+?)(?:\s*\n|\s+Via|\s+Viale)/i);
+  const numOrdineMatch = testo.match(/Num\.?\s*Ordine\s*:?\s*(\d+)/);
+  const dataConsegnaMatch = testo.match(/Data Consegna\s*:?\s*\w*\s*(\d{2}\/\d{2}\/\d{4})/);
+  return {
+    righe,
+    cliente: puntoMatch ? puntoMatch[1].trim() : null,
+    numOrdine: numOrdineMatch ? numOrdineMatch[1] : null,
+    dataConsegna: dataConsegnaMatch ? dataConsegnaMatch[1] : null
+  };
+}
+
+function rilevaFormato(testo) {
+  if (/PUNTO DI CONSEGNA/i.test(testo) && /Ordine a Fornitore - Conferma/i.test(testo)) return 'lando';
+  if (/COOP ALLEANZA/i.test(testo)) return 'coop_alleanza';
+  if (/Ordine a Fornitore - Sarcedo/i.test(testo) || /coopmarostica/i.test(testo)) return 'sarcedo';
+  if (/Ordine Gelato Lattebusche/i.test(testo) && /Totale colli/i.test(testo)) return 'bb_app';
+  if (/RDAVENETA/i.test(testo) || /RDA VENETA/i.test(testo)) return 'rda_veneta';
+  return 'sconosciuto';
+}
+
+function parseRdaVeneta(testo){
+  const righe = [];
+  // Colonne: CodArticolo CodArtForn(_suffisso?) EAN(12-13 cifre) Descrizione CostoListino Sconti% ScontoOrdine Um QTA "Imb. Cons."
+  const re = /^\d+\s+(\d{4})(?:_\d+)?\s+\d{12,13}\s+(.+?)\s+[\d,]+\s+-?[\d,]+%\s+[\d.]+\s+\d+\s+([\d,]+)\s+Imb\.\s*Cons\./gm;
+  let m;
+  while ((m = re.exec(testo)) !== null) {
+    const codice = parseInt(m[1]);
+    const qta = Math.round(parseFloat(m[3].replace(',', '.')));
+    if (CATALOGO[codice] && qta > 0) {
+      righe.push({codice, qta, descrizione_pdf: m[2].trim()});
+    }
+  }
+  const puntoMatch = testo.match(/\n(\d{3,6})\s*-\s*([A-Za-zÀ-ù\s]+?)\n/);
+  const numOrdineMatch = testo.match(/N\.\s*ordine\s*(\d+)/i);
+  const dataConsegnaMatch = testo.match(/Data consegna[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i);
+  return {
+    righe,
+    cliente: puntoMatch ? puntoMatch[2].trim() : 'RDA Veneta',
+    numOrdine: numOrdineMatch ? numOrdineMatch[1] : null,
+    dataConsegna: dataConsegnaMatch ? dataConsegnaMatch[1] : null
+  };
+}
+
+// Intestazioni di categoria come compaiono nel messaggio BB
+const BB_NOMI_CATEGORIA = {
+  "Linea Vasche 500 gr.": "500",
+  "Linea Vasche 1000 gr.": "1000",
+  "Linea Coni": "coni",
+  "Linea Biscotti": "biscotti",
+  "Linea Mini": "mini",
+  "Linea Stecchi": "stecchi",
+  "Linea Sorbetto": "sorbetti",
+};
+
+// ===== Mappatura nome-esatto -> codice per l'app testuale BB (Bar Bianchi) =====
+// L'app BB stampa nel messaggio finale SOLO i prodotti con quantità > 0 (salta gli
+// zeri), quindi un conteggio posizionale è fragile: si usa il nome esatto (byte per
+// byte, incluso eventuale "(n)" tra parentesi) come chiave, verificato manualmente
+// contro il catalogo ufficiale codice per codice.
+const BB_NOME_TO_CODICE = {
+  "500::Panna Cacao":4001, "500::Fragola Limone":4002, "500::Pistacchio Nocciola":4003,
+  "500::Stracciatella":4004, "500::Crokko Menta":4005, "500::Fiordipanna":4006,
+  "500::Strudel variegato Mela e Cannella":4007, "500::Limone":4009,
+  "500::Yogurt variegato Frutti di Bosco":4010, "500::Caramello Salato":4014,
+  "500::Crokko Lampone":4015, "500::Gran Nocciolato":4018,
+  "500::Panna variegato Amarena":4020, "500::Mascarpone variegato Pera":4023,
+  "500::Ricotta variegato arancia":4024, "500::Tiramisù":4605,
+  "500::Panna Cacao Bio":4882, "500::Crema gusto Vaniglia Bio":4883,
+  "500::Fiordipanna senza lattosio":4926,
+  "1000::Yogurt variegato Frutti di Bosco":4032, "1000::Panna Cacao":4051,
+  "1000::Fragola Limone":4052, "1000::Stracciatella":4054, "1000::Limone":4055,
+  "1000::Fiordipanna":4057, "1000::Panna variegato Amarena":4058,
+  "1000::Caramello Salato":4301,
+  "coni::Panna (6)":4401, "coni::Amarena (6)":4402, "coni::Panna & Cacao (6)":4403,
+  "coni::Yogurt variegato & Frutti di Bosco (6)":4431,
+  "coni::Croccante alle Mandorle (5)":4555, "coni::Caffè (5)":4556,
+  "biscotti::Panna & Cacao (8)":4406, "biscotti::Panna (5)":4407,
+  "biscotti::Stracciatella (8)":4723,
+  "mini::Miniconi Panna (8)":4400, "mini::Minibiscotti Panna (8)":4409,
+  "mini::Ministecchi Cioccolato (6)":4508, "mini::Ministecchi Mandorle (6)":4513,
+  "stecchi::Ricoperti (6)":4423, "stecchi::Ricoperti Menta (6)":4501,
+  "stecchi::Ricoperti Lampone (6)":4515,
+  "sorbetti::Caffè":4979, "sorbetti::Limone":4984, "sorbetti::Liquirizia":4989,
+};
+
+function parseBBApp(testo){
+  const righe = [];
+  const sconosciute = [];
+  // Rimuove caratteri Unicode invisibili (word joiner, zero-width space/joiner, BOM) che
+  // WhatsApp/iOS inseriscono talvolta attorno ai bullet "•" — altrimenti il regex che
+  // riconosce "bullet + nome prodotto" fallisce silenziosamente su quelle righe.
+  const PULISCI_INVISIBILI = /[\u2060\u200B\u200C\u200D\uFEFF]/g;
+  const righeTesto = testo.split('\n').map(r => r.replace(PULISCI_INVISIBILI, '').trim()).filter(Boolean);
+  let catAttuale = null;
+
+  // Normalizza per confronto: minuscolo, spazi multipli collassati, NBSP->spazio normale,
+  // rimuove asterischi di formattazione WhatsApp (*testo*) che restano come caratteri letterali
+  // quando il messaggio viene copiato come testo semplice.
+  function norm(s){
+    return s.replace(/\*/g, '').replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+
+  const categorieNorm = Object.keys(BB_NOMI_CATEGORIA).map(nomeCat => ({nomeCat, normCat: norm(nomeCat)}));
+
+  for (const riga of righeTesto) {
+    const rigaNorm = norm(riga);
+    // Riconosce l'intestazione categoria anche se il copia-incolla introduce piccole
+    // variazioni (spazi, maiuscole, caratteri invisibili) — match per inclusione, non per uguaglianza esatta
+    const catTrovata = categorieNorm.find(({normCat}) => rigaNorm === normCat || rigaNorm.startsWith(normCat));
+    if (catTrovata) {
+      catAttuale = BB_NOMI_CATEGORIA[catTrovata.nomeCat];
+      continue;
+    }
+    // Tollerante a diversi tipi di trattino/bullet (iOS e alcune app sostituiscono
+    // il trattino "-" con en-dash – o em-dash — durante la digitazione o l'esportazione)
+    const m = riga.match(/^[•·\-–—\*]?\s*(.+?)\s*[\-–—]\s*(\d+)\s*$/);
+    if (m && catAttuale) {
+      const nomeBB = m[1].trim();
+      const qta = parseInt(m[2]);
+      // Lookup robusto: prova match esatto, poi normalizzato (case/spazi-insensitive)
+      let codice = BB_NOME_TO_CODICE[catAttuale + '::' + nomeBB];
+      if (!codice) {
+        const chiaveNorm = norm(nomeBB);
+        const trovata = Object.keys(BB_NOME_TO_CODICE).find(k => k.startsWith(catAttuale + '::') && norm(k.split('::')[1]) === chiaveNorm);
+        if (trovata) codice = BB_NOME_TO_CODICE[trovata];
+      }
+      if (codice && qta > 0) {
+        righe.push({codice, qta, descrizione_pdf: nomeBB});
+      } else if (qta > 0) {
+        sconosciute.push(nomeBB);
+      }
+    }
+  }
+  if (sconosciute.length) {
+    console.warn('BB: prodotti non riconosciuti:', sconosciute);
+  }
+  return righe;
+}
+
+function elaboraTesto(testo, nomeOrigine){
+  const formato = rilevaFormato(testo);
+  let risultato = {formato, nomeFile: nomeOrigine, righe: [], cliente: null, numOrdine: null, dataConsegna: null};
+
+  if (formato === 'sarcedo') {
+    risultato.righe = parseSarcedo(testo);
+    risultato.cliente = 'Sarcedo';
+  } else if (formato === 'coop_alleanza') {
+    const r = parseCoopAlleanza(testo);
+    risultato.righe = r.righe;
+    risultato.cliente = r.cliente;
+    risultato.numOrdine = r.numOrdine;
+    risultato.dataConsegna = r.dataConsegna;
+  } else if (formato === 'lando') {
+    const r = parseLando(testo);
+    risultato.righe = r.righe;
+    risultato.cliente = r.cliente;
+    risultato.numOrdine = r.numOrdine;
+    risultato.dataConsegna = r.dataConsegna;
+  } else if (formato === 'bb_app') {
+    risultato.righe = parseBBApp(testo);
+    risultato.cliente = null; // il nome del bar va indicato da chi inserisce
+  } else if (formato === 'rda_veneta') {
+    const r = parseRdaVeneta(testo);
+    risultato.righe = r.righe;
+    risultato.cliente = r.cliente;
+    risultato.numOrdine = r.numOrdine;
+    risultato.dataConsegna = r.dataConsegna;
+  }
+  risultato.testoGrezzo = testo;
+  return risultato;
+}
+
+async function elaboraPDF(file) {
+  const testo = await estraiTestoPDF(file);
+  return elaboraTesto(testo, file.name);
+}
+
+function elaboraTestoIncollato(testo){
+  return elaboraTesto(testo, 'testo incollato');
+}
+
+
+// ===== Stato applicazione =====
+
+const GIORNI_NOMI = ["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+
+const State = {
+  data: new Date(),
+  gruppoAttivo: 'lando', // lando | generici | coop | totali
+  clienti: {
+    lando: [],     // [{id, nome, ordini: [{numOrdine, dataConsegna, righe:{codice:qta}}]}]
+    generici: [],  // [{id, nome, righe:{codice:qta}}]
+    coop: [],      // [{id, nome, numOrdine, dataConsegna, righe:{codice:qta}}]
+  },
+  _uid: 1,
+  nuovoId(){ return 'c' + (this._uid++); },
+
+  giornoSettimana(){
+    let d = this.data.getDay();
+    return d === 0 ? 7 : d; // 1=Lun..7=Dom, semplifichiamo: usiamo getDay() 0-6 direttamente sotto
+  },
+
+  inizializzaGiorno(){
+    // Popola automaticamente i Lando previsti per il giorno corrente, se non già presenti
+    const giorno = this.data.getDay(); // 0=Dom,1=Lun...6=Sab
+    const previsti = CALENDARIO_LANDO[giorno] || [];
+    for (const nome of previsti) {
+      if (!this.clienti.lando.find(c => c.nome === nome)) {
+        this.clienti.lando.push({id: this.nuovoId(), nome, ordini: [{numOrdine: null, dataConsegna: null, righe: {}}]});
+      }
+    }
+  },
+
+  normalizzaNomeLando(nome){
+    if (!nome) return nome;
+    const trovato = PUNTI_LANDO.find(p => p.toLowerCase() === nome.toLowerCase().trim());
+    return trovato || nome.trim();
+  },
+
+  aggiungiClienteLando(nome){
+    nome = this.normalizzaNomeLando(nome);
+    let esistente = this.clienti.lando.find(c => c.nome.toLowerCase() === nome.toLowerCase());
+    if (!esistente) {
+      esistente = {id: this.nuovoId(), nome, ordini: [{numOrdine: null, dataConsegna: null, righe: {}}]};
+      this.clienti.lando.push(esistente);
+    }
+    return esistente;
+  },
+
+  aggiungiOrdineLando(nomeCliente, numOrdine, dataConsegna, righeMap, etichetta){
+    const cliente = this.aggiungiClienteLando(nomeCliente);
+    // Se è il primo ordine (vuoto, senza numOrdine) lo riusa, altrimenti ne crea uno nuovo
+    let slot = cliente.ordini.find(o => !o.numOrdine && Object.keys(o.righe).length === 0);
+    if (!slot) {
+      slot = {numOrdine: null, dataConsegna: null, righe: {}};
+      cliente.ordini.push(slot);
+    }
+    slot.numOrdine = numOrdine;
+    slot.dataConsegna = dataConsegna;
+    slot.righe = righeMap;
+    slot.etichetta = etichetta || null;
+    return cliente;
+  },
+
+  rimuoviClienteLando(id){
+    this.clienti.lando = this.clienti.lando.filter(c => c.id !== id);
+  },
+
+  rimuoviOrdineLandoSlot(clienteId, idx){
+    const c = this.clienti.lando.find(c => c.id === clienteId);
+    if (c) c.ordini.splice(idx, 1);
+    if (c && c.ordini.length === 0) this.rimuoviClienteLando(clienteId);
+  },
+
+  aggiungiClienteGenerico(nome){
+    let esistente = this.clienti.generici.find(c => c.nome === nome);
+    if (!esistente) {
+      esistente = {id: this.nuovoId(), nome, righe: {}};
+      this.clienti.generici.push(esistente);
+    }
+    return esistente;
+  },
+
+  rimuoviClienteGenerico(id){
+    this.clienti.generici = this.clienti.generici.filter(c => c.id !== id);
+  },
+
+  aggiungiClienteCoop(nome, numOrdine, dataConsegna, righeMap){
+    const cliente = {id: this.nuovoId(), nome, numOrdine, dataConsegna, righe: righeMap};
+    this.clienti.coop.push(cliente);
+    return cliente;
+  },
+
+  rimuoviClienteCoop(id){
+    this.clienti.coop = this.clienti.coop.filter(c => c.id !== id);
+  },
+
+  // ===== Calcoli totali =====
+  // Nota: i codici interni Coop (12162, 12189, 12231) vengono confluiti nel codice
+  // standard equivalente per il totale di riordino magazzino, ma restano visibili
+  // separatamente nella vista "Coop Alleanza".
+  _codiceCanonico(cod){
+    const prod = CATALOGO[cod];
+    if (prod && prod.equivalente) return String(prod.equivalente);
+    return String(cod);
+  },
+
+  totalePerReferenza(){
+    const tot = {};
+    const add = (cod, q) => { const k = this._codiceCanonico(cod); tot[k] = (tot[k]||0) + (q||0); };
+    for (const c of this.clienti.lando) for (const o of c.ordini) for (const [cod,q] of Object.entries(o.righe)) add(cod,q);
+    for (const c of this.clienti.generici) for (const [cod,q] of Object.entries(c.righe)) add(cod,q);
+    for (const c of this.clienti.coop) for (const [cod,q] of Object.entries(c.righe)) add(cod,q);
+    return tot;
+  },
+
+  totalePerCategoria(){
+    const totRef = this.totalePerReferenza();
+    const totCat = {};
+    for (const [cod, q] of Object.entries(totRef)) {
+      const prod = CATALOGO[cod];
+      if (!prod) continue;
+      totCat[prod.cat] = (totCat[prod.cat]||0) + q;
+    }
+    return totCat;
+  },
+
+  // Totale per tipologia di un SINGOLO ordine Lando (una colonna della tabella "per tipologia")
+  totalePerTipologiaSingoloOrdine(righe){
+    const totCat = {};
+    for (const [cod, q] of Object.entries(righe)) {
+      const prod = CATALOGO[cod];
+      if (!prod) continue;
+      totCat[prod.cat] = (totCat[prod.cat]||0) + (q||0);
+    }
+    return totCat;
+  },
+
+  totaleLandoPerTipologia(){
+    const totCat = {};
+    for (const c of this.clienti.lando) {
+      for (const o of c.ordini) {
+        for (const [cod, q] of Object.entries(o.righe)) {
+          const prod = CATALOGO[cod];
+          if (!prod) continue;
+          totCat[prod.cat] = (totCat[prod.cat]||0) + (q||0);
+        }
+      }
+    }
+    return totCat;
+  },
+
+  reset(){
+    this.clienti = {lando: [], generici: [], coop: []};
+    this.inizializzaGiorno();
+  }
+};
+
+
+// ===== UI =====
+
+function fmtData(d){
+  return d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+}
+
+function nomeProdottoTag(cod){
+  const prod = CATALOGO[cod];
+  if (!prod) return '???';
+  let stile = '';
+  if (prod.colore === 'verde') stile = 'color:#3f6b3e; font-weight:700;';
+  else if (prod.colore === 'azzurro') stile = 'color:#2a7d9c; font-weight:700;';
+  const pallino = prod.colore === 'verde' ? '🟢 ' : (prod.colore === 'azzurro' ? '🔵 ' : '');
+  return `<span style="${stile}">${pallino}${prod.nome}</span>`;
+}
+
+function mostraToast(msg, durata=2600){
+  const root = document.getElementById('toastRoot');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  root.innerHTML = '';
+  root.appendChild(el);
+  setTimeout(() => { if (el.parentNode) el.remove(); }, durata);
+}
+
+function chiudiModal(){
+  document.getElementById('modalRoot').innerHTML = '';
+}
+
+document.getElementById('dateLabel').textContent = fmtData(State.data);
+State.inizializzaGiorno();
+
+// ---------- TAB BAR ----------
+const TABS = [
+  {id:'lando', label:'🚚 Lando'},
+  {id:'generici', label:'📦 Generici'},
+  {id:'coop', label:'🛒 Coop Alleanza'},
+  {id:'totali', label:'📊 Totali'},
+];
+
+function renderTabs(){
+  const bar = document.getElementById('tabbar');
+  bar.innerHTML = TABS.map(t => `<button data-tab="${t.id}" class="${State.gruppoAttivo===t.id?'active':''}">${t.label}</button>`).join('');
+  bar.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      State.gruppoAttivo = btn.dataset.tab;
+      renderTabs();
+      renderMain();
+    });
+  });
+}
+
+// ---------- MAIN RENDER ----------
+function renderMain(){
+  const main = document.getElementById('mainContent');
+  if (State.gruppoAttivo === 'lando') main.innerHTML = renderLandoView();
+  else if (State.gruppoAttivo === 'generici') main.innerHTML = renderGenericiView();
+  else if (State.gruppoAttivo === 'coop') main.innerHTML = renderCoopView();
+  else if (State.gruppoAttivo === 'totali') main.innerHTML = renderTotaliView();
+  attachMainEvents();
+}
+
+// ---------- VISTA LANDO ----------
+function renderLandoView(){
+  const clienti = State.clienti.lando;
+  let colonne = [];
+  clienti.forEach(c => {
+    c.ordini.forEach((o, idx) => {
+      colonne.push({clienteId: c.id, nome: c.nome, ordineIdx: idx, numOrdine: o.numOrdine, etichetta: o.etichetta});
+    });
+  });
+
+  const tutteleRefCodici = new Set();
+  colonne.forEach(col => {
+    const c = clienti.find(c=>c.id===col.clienteId);
+    Object.keys(c.ordini[col.ordineIdx].righe).forEach(cod => tutteleRefCodici.add(cod));
+  });
+  const codiciOrdinati = codiciOrdinatiUfficiale();
+
+  let html = `
+  <div class="card">
+    <h2>F.lli Lando — ${fmtData(State.data)}</h2>
+    <div class="note-box">Punti vendita previsti oggi popolati in automatico. Puoi aggiungerne altri o caricare un secondo ordine (scorta) per Conselve/Cittadella.</div>
+    <div class="row" style="margin-bottom:10px;">
+      <button class="btn btn-primary" id="btnCaricaPdfLando">📄 Carica PDF ordine</button>
+      <button class="btn btn-secondary" id="btnInserimentoManualeLando">✏️ Inserisci manualmente</button>
+      <select id="selectAggiungiLando">
+        <option value="">+ Aggiungi punto vendita…</option>
+        ${PUNTI_LANDO.filter(p => !clienti.find(c=>c.nome===p)).map(p=>`<option value="${p}">${p}</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
+
+  if (colonne.length === 0) {
+    html += `<div class="card"><div class="empty-state"><div class="icon">🚚</div>Nessun punto vendita Lando ancora. Carica un PDF o aggiungilo manualmente.</div></div>`;
+    return html;
+  }
+
+  html += `<div class="card"><div class="tablewrap"><table><thead><tr>
+    <th class="rowlabel">Referenza</th>
+    ${colonne.map(col => `<th>${col.nome}${col.numOrdine ? `<div style="font-size:0.68rem;font-weight:400;opacity:0.85;">ord. ${col.numOrdine}${col.etichetta?` · ${col.etichetta}`:''}</div>` : ''}</th>`).join('')}
+    <th class="tot">TOT</th>
+  </tr></thead><tbody>`;
+
+  let catCorrente = null;
+  for (const cod of codiciOrdinati) {
+    const prod = CATALOGO[cod];
+    if (prod.cat !== catCorrente) {
+      catCorrente = prod.cat;
+      html += `<tr class="cat-header"><td colspan="${colonne.length+2}">${CATEGORIE[catCorrente]}</td></tr>`;
+    }
+    let totRiga = 0;
+    let celle = colonne.map(col => {
+      const c = clienti.find(c=>c.id===col.clienteId);
+      const q = c.ordini[col.ordineIdx].righe[cod] || 0;
+      totRiga += q;
+      return `<td class="${q? 'qty-cell':'qty-zero'}">${q || '·'}</td>`;
+    }).join('');
+    if (totRiga === 0) continue; // nasconde righe senza nessun ordine per leggibilità... ma mostriamo comunque se preferisci tutte: rimuovi questo continue
+    html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)} <span style="color:var(--grigio);font-size:0.7rem;">${cod}</span></td>${celle}<td class="tot">${totRiga}</td></tr>`;
+  }
+
+  html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE COLLI</td>${colonne.map(col=>{
+    const c = clienti.find(c=>c.id===col.clienteId);
+    const tot = Object.values(c.ordini[col.ordineIdx].righe).reduce((a,b)=>a+b,0);
+    return `<td class="tot">${tot}</td>`;
+  }).join('')}<td class="tot">${colonne.reduce((acc,col)=>{
+    const c = clienti.find(c=>c.id===col.clienteId);
+    return acc + Object.values(c.ordini[col.ordineIdx].righe).reduce((a,b)=>a+b,0);
+  },0)}</td></tr>`;
+
+  html += `</tbody></table></div></div>`;
+
+  html += `<div class="card"><h2 style="font-size:0.9rem;">Gestione colonne</h2><div class="client-list">`;
+  colonne.forEach(col => {
+    html += `<span class="pill">${col.nome}${col.numOrdine?` (${col.numOrdine})`:''} <span class="x" data-rimuovi-lando="${col.clienteId}|${col.ordineIdx}">✕</span></span>`;
+  });
+  html += `</div></div>`;
+
+  return html;
+}
+
+// ---------- VISTA GENERICI ----------
+// Clienti che usano l'app testuale BB (formato "Linea... • Prodotto - qta", via Incolla ordine BB)
+const CLIENTI_APP_TESTO_BB = ["BB Camazzole", "BB Lanzè", "BB Grantortino", "Svas Villafranca", "Nuova Futura", "Società Consortile di Dolo"];
+
+// Clienti a inserimento manuale (poche referenze, ordini sporadici, nessun formato PDF/testo riconosciuto)
+const CLIENTI_MANUALI = ["SGR Bezzecca", "SGR Monselice", "Bianchini F.", "Le Corti", "Biosapori Bassano del Grappa", "Biosapori Noventa Padovana", "Ae Noseare", "Monte Altore", "Circolo del Patronato Canossiano"];
+
+const CLIENTI_GENERICI_NOTI = ["SARCEDO", ...CLIENTI_APP_TESTO_BB, ...CLIENTI_MANUALI];
+
+function renderGenericiView(){
+  const clienti = State.clienti.generici;
+  const codiciOrdinati = codiciOrdinatiUfficiale();
+
+  let html = `
+  <div class="card">
+    <h2>Ordini Generici — ${fmtData(State.data)}</h2>
+    <div class="row" style="margin-bottom:10px;">
+      <button class="btn btn-primary" id="btnCaricaPdfGenerico">📄 Carica PDF ordine</button>
+      <button class="btn btn-primary" id="btnIncollaTestoBB">📋 Incolla ordine BB</button>
+      <button class="btn btn-secondary" id="btnInserimentoManualeGenerico">✏️ Inserisci manualmente</button>
+      <select id="selectAggiungiGenerico">
+        <option value="">+ Aggiungi cliente…</option>
+        <optgroup label="📋 Usa testo app (incolla ordine)">
+          ${CLIENTI_APP_TESTO_BB.filter(p=>!clienti.find(c=>c.nome===p)).map(p=>`<option value="${p}">${p}</option>`).join('')}
+        </optgroup>
+        <optgroup label="📄 Documento proprio">
+          ${["SARCEDO"].filter(p=>!clienti.find(c=>c.nome===p)).map(p=>`<option value="${p}">${p}</option>`).join('')}
+        </optgroup>
+        <optgroup label="✏️ Inserimento manuale">
+          ${CLIENTI_MANUALI.filter(p=>!clienti.find(c=>c.nome===p)).map(p=>`<option value="${p}">${p}</option>`).join('')}
+        </optgroup>
+        <option value="__custom__">Altro (scrivi nome)…</option>
+      </select>
+    </div>
+  </div>`;
+
+  if (clienti.length === 0) {
+    html += `<div class="card"><div class="empty-state"><div class="icon">📦</div>Nessun cliente generico inserito oggi.</div></div>`;
+    return html;
+  }
+
+  html += `<div class="card"><div class="tablewrap"><table><thead><tr>
+    <th class="rowlabel">Referenza</th>
+    ${clienti.map(c => `<th><span data-modifica-generico="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${c.nome} ✏️</span></th>`).join('')}
+    <th class="tot">TOT</th>
+  </tr></thead><tbody>`;
+
+  let catCorrente = null;
+  for (const cod of codiciOrdinati) {
+    const prod = CATALOGO[cod];
+    if (prod.cat !== catCorrente) {
+      catCorrente = prod.cat;
+      html += `<tr class="cat-header"><td colspan="${clienti.length+2}">${CATEGORIE[catCorrente]}</td></tr>`;
+    }
+    let totRiga = 0;
+    let celle = clienti.map(c => {
+      const q = c.righe[cod] || 0;
+      totRiga += q;
+      return `<td class="${q?'qty-cell':'qty-zero'}">${q || '·'}</td>`;
+    }).join('');
+    if (totRiga === 0) continue;
+    html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)} <span style="color:var(--grigio);font-size:0.7rem;">${cod}</span></td>${celle}<td class="tot">${totRiga}</td></tr>`;
+  }
+  html += `</tbody></table></div></div>`;
+
+  html += `<div class="card"><h2 style="font-size:0.9rem;">Gestione clienti</h2><div class="client-list">`;
+  clienti.forEach(c => {
+    html += `<span class="pill">${c.nome} <span class="x" data-rimuovi-generico="${c.id}">✕</span></span>`;
+  });
+  html += `</div></div>`;
+
+  return html;
+}
+
+// ---------- VISTA COOP ----------
+function renderCoopView(){
+  const clienti = State.clienti.coop;
+  const codiciOrdinati = codiciOrdinatiConCoop();
+
+  let html = `
+  <div class="card">
+    <h2>Coop Alleanza — ${fmtData(State.data)}</h2>
+    <div class="note-box">Nessun calendario fisso: aggiungi ogni Coop quando arriva il suo ordine.</div>
+    <div class="row">
+      <button class="btn btn-primary" id="btnCaricaPdfCoop">📄 Carica PDF ordine Coop</button>
+      <button class="btn btn-secondary" id="btnAggiungiCoopManuale">✏️ Inserisci manualmente</button>
+    </div>
+  </div>`;
+
+  if (clienti.length === 0) {
+    html += `<div class="card"><div class="empty-state"><div class="icon">🛒</div>Nessun ordine Coop inserito oggi.</div></div>`;
+    return html;
+  }
+
+  html += `<div class="card"><div class="tablewrap"><table><thead><tr>
+    <th class="rowlabel">Referenza</th>
+    ${clienti.map(c => `<th>${c.nome}${c.numOrdine?`<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${c.numOrdine}</div>`:''}</th>`).join('')}
+    <th class="tot">TOT</th>
+  </tr></thead><tbody>`;
+
+  let catCorrente = null;
+  for (const cod of codiciOrdinati) {
+    const prod = CATALOGO[cod];
+    if (prod.cat !== catCorrente) {
+      catCorrente = prod.cat;
+      html += `<tr class="cat-header"><td colspan="${clienti.length+2}">${CATEGORIE[catCorrente]}</td></tr>`;
+    }
+    let totRiga = 0;
+    let celle = clienti.map(c => {
+      const q = c.righe[cod] || 0;
+      totRiga += q;
+      return `<td class="${q?'qty-cell':'qty-zero'}">${q || '·'}</td>`;
+    }).join('');
+    if (totRiga === 0) continue;
+    const noteTag = prod.note ? ` <span style="color:var(--grigio);font-size:0.65rem;">(${prod.note})</span>` : '';
+    html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)} <span style="color:var(--grigio);font-size:0.7rem;">${cod}</span>${noteTag}</td>${celle}<td class="tot">${totRiga}</td></tr>`;
+  }
+  html += `</tbody></table></div></div>`;
+
+  html += `<div class="card"><h2 style="font-size:0.9rem;">Gestione clienti</h2><div class="client-list">`;
+  clienti.forEach(c => {
+    html += `<span class="pill">${c.nome} <span class="x" data-rimuovi-coop="${c.id}">✕</span></span>`;
+  });
+  html += `</div></div>`;
+
+  return html;
+}
+
+// ---------- VISTA TOTALI ----------
+function renderTotaliView(){
+  const totRef = State.totalePerReferenza();
+  const totCat = State.totalePerCategoria();
+
+  let html = `<div class="card"><h2>Totale tutti gli ordini — per referenza</h2><div class="note-box">Ordine compatibile per DDT e riordino magazzino.</div>`;
+  html += `<div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Totale colli</th></tr></thead><tbody>`;
+  let catCorrente = null;
+  let grandTotal = 0;
+  for (const cod of codiciOrdinatiUfficiale()) {
+    const prod = CATALOGO[cod];
+    const q = totRef[cod] || 0;
+    if (prod.cat !== catCorrente) {
+      catCorrente = prod.cat;
+      html += `<tr class="cat-header"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
+    }
+    grandTotal += q;
+    html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot ${q?'qty-cell':'qty-zero'}">${q||'·'}</td></tr>`;
+  }
+  html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE GENERALE</td><td></td><td class="tot">${grandTotal}</td></tr>`;
+  html += `</tbody></table></div></div>`;
+
+  html += `<div class="card"><h2>Totale per tipologia (tutti i clienti)</h2><div class="tablewrap"><table><thead><tr><th class="rowlabel">Tipologia</th><th class="tot">Colli</th></tr></thead><tbody>`;
+  for (const [cat, nome] of Object.entries(CATEGORIE)) {
+    const q = totCat[cat] || 0;
+    html += `<tr><td class="rowlabel">${nome}</td><td class="tot ${q?'qty-cell':'qty-zero'}">${q||'·'}</td></tr>`;
+  }
+  html += `</tbody></table></div></div>`;
+
+  // Colonne = uno per ogni ordine Lando caricato oggi (stessa logica di renderLandoView)
+  let colonneLandoTipo = [];
+  State.clienti.lando.forEach(c => {
+    c.ordini.forEach((o, idx) => {
+      colonneLandoTipo.push({nome: c.nome, numOrdine: o.numOrdine, etichetta: o.etichetta, righe: o.righe});
+    });
+  });
+
+  html += `<div class="card"><h2>Totale Lando per tipologia <span class="badge lando">controllo scarico furgone</span></h2>`;
+  if (colonneLandoTipo.length === 0) {
+    html += `<div class="empty-state" style="padding:16px;">Nessun ordine Lando caricato oggi.</div></div>`;
+  } else {
+    html += `<div class="tablewrap"><table><thead><tr><th class="rowlabel">Tipologia</th>`;
+    colonneLandoTipo.forEach(col => {
+      html += `<th>${col.nome}${col.numOrdine ? `<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${col.numOrdine}${col.etichetta?` · ${col.etichetta}`:''}</div>` : ''}</th>`;
+    });
+    html += `<th class="tot">TOTALE</th></tr></thead><tbody>`;
+    for (const [cat, nome] of Object.entries(CATEGORIE)) {
+      let totRiga = 0;
+      const celle = colonneLandoTipo.map(col => {
+        const totOrdine = State.totalePerTipologiaSingoloOrdine(col.righe);
+        const q = totOrdine[cat] || 0;
+        totRiga += q;
+        return `<td class="${q?'qty-cell':'qty-zero'}">${q||'·'}</td>`;
+      }).join('');
+      html += `<tr><td class="rowlabel">${nome}</td>${celle}<td class="tot ${totRiga?'qty-cell':'qty-zero'}">${totRiga||'·'}</td></tr>`;
+    }
+    html += `</tbody></table></div></div>`;
+  }
+
+  html += `<div class="card"><div class="row">
+    <button class="btn btn-primary" id="btnEsportaExcel">📥 Esporta in Excel</button>
+    <button class="btn btn-danger btn-ghost" id="btnResetGiorno">🗑️ Azzera giornata</button>
+  </div></div>`;
+
+  return html;
+}
+
+// ---------- EVENTI ----------
+function attachMainEvents(){
+  // LANDO
+  const btnPdfLando = document.getElementById('btnCaricaPdfLando');
+  if (btnPdfLando) btnPdfLando.addEventListener('click', () => apriUploadPDF('lando'));
+
+  const btnManualeLando = document.getElementById('btnInserimentoManualeLando');
+  if (btnManualeLando) btnManualeLando.addEventListener('click', () => apriInserimentoManuale('lando'));
+
+  const selLando = document.getElementById('selectAggiungiLando');
+  if (selLando) selLando.addEventListener('change', (e) => {
+    if (e.target.value) { State.aggiungiClienteLando(e.target.value); renderMain(); }
+  });
+
+  document.querySelectorAll('[data-rimuovi-lando]').forEach(el => {
+    el.addEventListener('click', () => {
+      const [clienteId, idx] = el.dataset.rimuoviLando.split('|');
+      State.rimuoviOrdineLandoSlot(clienteId, parseInt(idx));
+      renderMain();
+    });
+  });
+
+  // GENERICI
+  const btnPdfGen = document.getElementById('btnCaricaPdfGenerico');
+  if (btnPdfGen) btnPdfGen.addEventListener('click', () => apriUploadPDF('generici'));
+
+  const btnIncollaBB = document.getElementById('btnIncollaTestoBB');
+  if (btnIncollaBB) btnIncollaBB.addEventListener('click', () => apriIncollaTestoBB());
+
+  const btnManualeGen = document.getElementById('btnInserimentoManualeGenerico');
+  if (btnManualeGen) btnManualeGen.addEventListener('click', () => apriInserimentoManuale('generici'));
+
+  const selGen = document.getElementById('selectAggiungiGenerico');
+  if (selGen) selGen.addEventListener('change', (e) => {
+    const valore = e.target.value;
+    if (valore === '__custom__') {
+      const nome = prompt('Nome cliente:');
+      if (nome) { State.aggiungiClienteGenerico(nome); renderMain(); }
+    } else if (CLIENTI_APP_TESTO_BB.includes(valore)) {
+      apriIncollaTestoBB(valore);
+    } else if (CLIENTI_MANUALI.includes(valore)) {
+      apriInserimentoManuale('generici', valore);
+    } else if (valore) {
+      State.aggiungiClienteGenerico(valore); renderMain();
+    }
+  });
+
+  document.querySelectorAll('[data-rimuovi-generico]').forEach(el => {
+    el.addEventListener('click', () => {
+      State.rimuoviClienteGenerico(el.dataset.rimuoviGenerico);
+      renderMain();
+    });
+  });
+
+  document.querySelectorAll('[data-modifica-generico]').forEach(el => {
+    el.addEventListener('click', () => {
+      const c = State.clienti.generici.find(c => c.id === el.dataset.modificaGenerico);
+      if (c) apriInserimentoManuale('generici', c.nome, c.righe);
+    });
+  });
+
+  // COOP
+  const btnPdfCoop = document.getElementById('btnCaricaPdfCoop');
+  if (btnPdfCoop) btnPdfCoop.addEventListener('click', () => apriUploadPDF('coop'));
+
+  const btnCoopManuale = document.getElementById('btnAggiungiCoopManuale');
+  if (btnCoopManuale) btnCoopManuale.addEventListener('click', () => apriInserimentoManuale('coop'));
+
+  document.querySelectorAll('[data-rimuovi-coop]').forEach(el => {
+    el.addEventListener('click', () => {
+      State.rimuoviClienteCoop(el.dataset.rimuoviCoop);
+      renderMain();
+    });
+  });
+
+  // TOTALI
+  const btnExport = document.getElementById('btnEsportaExcel');
+  if (btnExport) btnExport.addEventListener('click', esportaExcel);
+
+  const btnReset = document.getElementById('btnResetGiorno');
+  if (btnReset) btnReset.addEventListener('click', () => {
+    if (confirm('Azzerare tutti gli ordini della giornata?')) { State.reset(); renderMain(); mostraToast('Giornata azzerata'); }
+  });
+}
+
+// ---------- UPLOAD & PARSING MODAL ----------
+function apriUploadPDF(gruppo){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+  <div class="modal-backdrop" id="backdropUpload">
+    <div class="modal">
+      <h3>Carica PDF ordine</h3>
+      <div class="modal-sub">Seleziona uno o più file PDF. Verranno letti automaticamente.</div>
+      <label class="dropzone" id="dropzonePdf">
+        📄<br>Tocca per scegliere il PDF<br>
+        <input type="file" id="inputPdf" accept="application/pdf" multiple>
+      </label>
+      <div id="pdfStatusArea" style="margin-top:14px;"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btnAnnullaUpload" style="flex:1;">Annulla</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('btnAnnullaUpload').addEventListener('click', chiudiModal);
+  document.getElementById('backdropUpload').addEventListener('click', (e) => { if (e.target.id === 'backdropUpload') chiudiModal(); });
+
+  document.getElementById('inputPdf').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    const statusArea = document.getElementById('pdfStatusArea');
+    statusArea.innerHTML = `<div class="row"><span class="spinner" style="border-top-color:var(--pistacchio-dark); border-color:rgba(92,140,90,0.3);"></span> Lettura PDF in corso…</div>`;
+
+    for (const file of files) {
+      try {
+        const risultato = await elaboraPDF(file);
+        if (risultato.formato === 'sconosciuto' || risultato.righe.length === 0) {
+          statusArea.innerHTML += `<div class="note-box" style="border-color:var(--amarena);">⚠️ "${file.name}": formato non riconosciuto o nessuna riga trovata. Inseribile manualmente.</div>`;
+          continue;
+        }
+        mostraAnteprimaConferma(risultato, gruppo);
+        return; // mostriamo un file alla volta nell'anteprima per chiarezza
+      } catch (err) {
+        statusArea.innerHTML += `<div class="note-box" style="border-color:var(--amarena);">⚠️ Errore lettura "${file.name}": ${err.message}</div>`;
+      }
+    }
+  });
+}
+
+function mostraAnteprimaConferma(risultato, gruppo){
+  const root = document.getElementById('modalRoot');
+  const formatoLabel = {sarcedo:'Sarcedo', coop_alleanza:'Coop Alleanza', lando:'F.lli Lando', bb_app:'Bar Bianchi', rda_veneta:'RDA Veneta'}[risultato.formato] || 'Sconosciuto';
+  const badgeClass = {sarcedo:'sarcedo', coop_alleanza:'coop', lando:'lando', bb_app:'coop', rda_veneta:'coop'}[risultato.formato] || '';
+
+  const righeConDati = risultato.righe.map(r => ({...r, nome: CATALOGO[r.codice] ? CATALOGO[r.codice].nome : '???'}));
+
+  let extraCampi = '';
+  if (risultato.formato === 'lando') {
+    extraCampi = `
+      <div class="row" style="margin-bottom:10px;">
+        <label style="font-size:0.85rem;">Etichetta ordine (opz.):</label>
+        <select id="etichettaOrdine">
+          <option value="">Ordine unico</option>
+          <option value="Esposizione">1° ordine (esposizione)</option>
+          <option value="Scorta">2° ordine (scorta)</option>
+        </select>
+      </div>`;
+  }
+
+  root.innerHTML = `
+  <div class="modal-backdrop" id="backdropPreview">
+    <div class="modal">
+      <h3>Conferma lettura <span class="badge ${badgeClass}">${formatoLabel}</span></h3>
+      <div class="modal-sub">
+        ${risultato.cliente ? `Cliente: <b>${risultato.cliente}</b>` : ''}
+        ${risultato.numOrdine ? ` · N. ordine: <b>${risultato.numOrdine}</b>` : ''}
+        ${risultato.dataConsegna ? ` · Consegna: <b>${risultato.dataConsegna}</b>` : ''}
+        <br>${righeConDati.length} referenze trovate. Controlla le quantità prima di confermare.
+      </div>
+      ${extraCampi}
+      <div class="preview-row header-row">
+        <div>Prodotto</div><div>Cod.</div><div>Quantità</div><div></div>
+      </div>
+      <div id="previewRows">
+        ${righeConDati.map((r, i) => `
+          <div class="preview-row" data-idx="${i}">
+            <div>${r.nome}${r.nome==='???'?' <span class="warn">codice non in catalogo</span>':''}</div>
+            <div class="codice">${r.codice}</div>
+            <input type="number" min="0" value="${r.qta}" data-qta-idx="${i}">
+            <div class="del-row" data-elimina-riga="${i}">✕</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btnAnnullaPreview" style="flex:1;">Annulla</button>
+        <button class="btn btn-primary" id="btnConfermaPreview" style="flex:2;">✓ Conferma e inserisci</button>
+      </div>
+    </div>
+  </div>`;
+
+  let righeLavoro = [...righeConDati];
+
+  document.getElementById('btnAnnullaPreview').addEventListener('click', chiudiModal);
+  document.getElementById('backdropPreview').addEventListener('click', (e) => { if (e.target.id === 'backdropPreview') chiudiModal(); });
+
+  document.querySelectorAll('[data-qta-idx]').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.dataset.qtaIdx);
+      righeLavoro[idx].qta = parseInt(e.target.value) || 0;
+    });
+  });
+
+  document.querySelectorAll('[data-elimina-riga]').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.eliminaRiga);
+      el.closest('.preview-row').style.display = 'none';
+      righeLavoro[idx]._escludi = true;
+    });
+  });
+
+  document.getElementById('btnConfermaPreview').addEventListener('click', () => {
+    const righeMap = {};
+    righeLavoro.filter(r => !r._escludi).forEach(r => { righeMap[r.codice] = r.qta; });
+
+    if (gruppo === 'lando') {
+      const nomeCliente = risultato.cliente || prompt('Nome punto vendita Lando:');
+      const etichettaSel = document.getElementById('etichettaOrdine');
+      const etichetta = etichettaSel ? etichettaSel.value : null;
+      State.aggiungiOrdineLando(nomeCliente, risultato.numOrdine, risultato.dataConsegna, righeMap, etichetta);
+      State.gruppoAttivo = 'lando';
+    } else if (gruppo === 'coop') {
+      const nomeCliente = risultato.cliente || prompt('Nome punto vendita Coop:');
+      State.aggiungiClienteCoop(nomeCliente, risultato.numOrdine, risultato.dataConsegna, righeMap);
+      State.gruppoAttivo = 'coop';
+    } else if (gruppo === 'generici') {
+      const nomeCliente = risultato.cliente || prompt('Nome cliente:');
+      const c = State.aggiungiClienteGenerico(nomeCliente);
+      c.righe = righeMap;
+      State.gruppoAttivo = 'generici';
+    }
+    chiudiModal();
+    renderTabs();
+    renderMain();
+    mostraToast('✓ Ordine inserito correttamente');
+  });
+}
+
+// ---------- INCOLLA TESTO ORDINE BB ----------
+function apriIncollaTestoBB(nomePrecompilato){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+  <div class="modal-backdrop" id="backdropIncolla">
+    <div class="modal">
+      <h3>Incolla ordine Bar Bianchi</h3>
+      <div class="modal-sub">Copia il messaggio dall'app BB (o da Note/WhatsApp dopo averlo copiato) e incollalo qui sotto.</div>
+      <textarea id="testoIncollaBB" placeholder="🧊 Ordine Gelato Lattebusche..." style="width:100%; min-height:200px; padding:10px; border:1.5px solid var(--linea); border-radius:10px; font-family:inherit; font-size:0.9rem;"></textarea>
+      <div class="row" style="margin-top:10px;">
+        <input type="text" id="nomeBarBB" placeholder="Nome del bar (es. BB Granmichele)" value="${nomePrecompilato || ''}" style="flex:1;">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btnAnnullaIncolla" style="flex:1;">Annulla</button>
+        <button class="btn btn-primary" id="btnElaboraIncolla" style="flex:2;">Leggi ordine</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('btnAnnullaIncolla').addEventListener('click', chiudiModal);
+  document.getElementById('backdropIncolla').addEventListener('click', (e) => { if (e.target.id === 'backdropIncolla') chiudiModal(); });
+
+  document.getElementById('btnElaboraIncolla').addEventListener('click', () => {
+    const testo = document.getElementById('testoIncollaBB').value.trim();
+    const nomeBar = document.getElementById('nomeBarBB').value.trim();
+    if (!testo) { mostraToast('⚠️ Incolla il testo dell\'ordine'); return; }
+    if (!nomeBar) { mostraToast('⚠️ Inserisci il nome del bar'); return; }
+
+    const risultato = elaboraTestoIncollato(testo);
+    if (risultato.formato !== 'bb_app' || risultato.righe.length === 0) {
+      mostraToast('⚠️ Testo non riconosciuto. Verifica di averlo copiato per intero.');
+      return;
+    }
+    risultato.cliente = nomeBar;
+    mostraAnteprimaConferma(risultato, 'generici');
+  });
+}
+
+
+function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti){
+  const root = document.getElementById('modalRoot');
+  const codici = codiciOrdinatiUfficiale();
+  righeEsistenti = righeEsistenti || {};
+
+  const titoloGruppo = {lando:'F.lli Lando', generici:'Ordini Generici', coop:'Coop Alleanza'}[gruppo];
+  let extraCampi = '';
+  if (gruppo === 'lando') {
+    extraCampi = `
+      <div class="row" style="margin-bottom:10px; flex-direction:column; align-items:stretch; gap:8px;">
+        <select id="manualeNomeLando">
+          <option value="">Seleziona punto vendita…</option>
+          ${PUNTI_LANDO.map(p=>`<option value="${p}" ${p===nomePrecompilato?'selected':''}>${p}</option>`).join('')}
+        </select>
+        <select id="manualeEtichettaLando">
+          <option value="">Ordine unico</option>
+          <option value="Esposizione">1° ordine (esposizione)</option>
+          <option value="Scorta">2° ordine (scorta)</option>
+        </select>
+      </div>`;
+  } else if (gruppo === 'coop' || gruppo === 'generici') {
+    extraCampi = `<div class="row" style="margin-bottom:10px;">
+      <input type="text" id="manualeNomeCliente" placeholder="Nome cliente" value="${nomePrecompilato || ''}" style="flex:1;">
+    </div>`;
+  }
+
+  let catCorrente = null;
+  let righeHtml = '';
+  let totaleIniziale = 0;
+  for (const cod of codici) {
+    const prod = CATALOGO[cod];
+    if (prod.cat !== catCorrente) {
+      catCorrente = prod.cat;
+      righeHtml += `<div style="background:var(--pistacchio); color:#fff; font-weight:700; padding:7px 10px; border-radius:6px; margin:8px 0 4px; font-size:0.82rem;">${CATEGORIE[catCorrente]}</div>`;
+    }
+    const valoreEsistente = righeEsistenti[cod] || '';
+    if (valoreEsistente) totaleIniziale += valoreEsistente;
+    righeHtml += `
+      <div class="preview-row" style="grid-template-columns:1fr 90px;">
+        <div>${nomeProdottoTag(cod)} <span class="codice">${cod}</span></div>
+        <input type="number" min="0" placeholder="0" value="${valoreEsistente}" data-manuale-qta="${cod}">
+      </div>`;
+  }
+
+  root.innerHTML = `
+  <div class="modal-backdrop" id="backdropManuale">
+    <div class="modal">
+      <h3>Inserimento manuale — ${titoloGruppo}</h3>
+      <div class="modal-sub">Scrivi solo le quantità che ti servono, lascia vuoto il resto.</div>
+      ${extraCampi}
+      <div class="totale-box" style="display:flex; justify-content:space-between; align-items:center; background:var(--linea); border-radius:10px; padding:10px 14px; margin-bottom:10px; font-weight:700;">
+        <span>Totale colli</span>
+        <span id="manualeTotaleColli" style="color:var(--amarena); font-size:1.1rem;">${totaleIniziale}</span>
+      </div>
+      <div id="manualeRows">${righeHtml}</div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btnAnnullaManuale" style="flex:1;">Annulla</button>
+        <button class="btn btn-primary" id="btnConfermaManuale" style="flex:2;">✓ Salva ordine</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('btnAnnullaManuale').addEventListener('click', chiudiModal);
+  document.getElementById('backdropManuale').addEventListener('click', (e) => { if (e.target.id === 'backdropManuale') chiudiModal(); });
+
+  document.querySelectorAll('[data-manuale-qta]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      let tot = 0;
+      document.querySelectorAll('[data-manuale-qta]').forEach(i => { tot += parseInt(i.value) || 0; });
+      document.getElementById('manualeTotaleColli').textContent = tot;
+    });
+  });
+
+  document.getElementById('btnConfermaManuale').addEventListener('click', () => {
+    const righeMap = {};
+    document.querySelectorAll('[data-manuale-qta]').forEach(inp => {
+      const v = parseInt(inp.value) || 0;
+      if (v > 0) righeMap[inp.dataset.manualeQta] = v;
+    });
+
+    if (Object.keys(righeMap).length === 0) {
+      mostraToast('⚠️ Nessuna quantità inserita');
+      return;
+    }
+
+    if (gruppo === 'lando') {
+      const nome = document.getElementById('manualeNomeLando').value;
+      if (!nome) { mostraToast('⚠️ Seleziona il punto vendita Lando'); return; }
+      const etichetta = document.getElementById('manualeEtichettaLando').value || null;
+      State.aggiungiOrdineLando(nome, null, null, righeMap, etichetta);
+      State.gruppoAttivo = 'lando';
+    } else if (gruppo === 'coop') {
+      const nome = document.getElementById('manualeNomeCliente').value.trim();
+      if (!nome) { mostraToast('⚠️ Inserisci il nome del cliente'); return; }
+      State.aggiungiClienteCoop(nome, null, null, righeMap);
+      State.gruppoAttivo = 'coop';
+    } else if (gruppo === 'generici') {
+      const nome = document.getElementById('manualeNomeCliente').value.trim();
+      if (!nome) { mostraToast('⚠️ Inserisci il nome del cliente'); return; }
+      const c = State.aggiungiClienteGenerico(nome);
+      c.righe = righeMap;
+      State.gruppoAttivo = 'generici';
+    }
+    chiudiModal();
+    renderTabs();
+    renderMain();
+    mostraToast('✓ Ordine inserito manualmente');
+  });
+}
+
+
+function esportaExcel(){
+  if (!window.XLSX) {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    script.onload = () => generaExcel();
+    document.body.appendChild(script);
+  } else {
+    generaExcel();
+  }
+}
+
+function generaExcel(){
+  const wb = XLSX.utils.book_new();
+
+  function buildSheet(headerCols, righeFn){
+    const aoa = [["Codice","Descrizione", ...headerCols, "TOT"]];
+    for (const cod of codiciOrdinatiUfficiale()) {
+      const prod = CATALOGO[cod];
+      const vals = righeFn(cod);
+      const tot = vals.reduce((a,b)=>a+b,0);
+      if (tot === 0) continue;
+      aoa.push([cod, prod.nome, ...vals, tot]);
+    }
+    return aoa;
+  }
+
+  // Lando
+  let colonneLando = [];
+  State.clienti.lando.forEach(c => c.ordini.forEach((o,idx) => colonneLando.push({c,idx})));
+  const headerLando = colonneLando.map(({c,idx}) => `${c.nome}${c.ordini[idx].numOrdine?' ('+c.ordini[idx].numOrdine+')':''}`);
+  const aoaLando = buildSheet(headerLando, (cod) => colonneLando.map(({c,idx}) => c.ordini[idx].righe[cod] || 0));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoaLando), "Ordini Lando");
+
+  // Generici
+  const headerGen = State.clienti.generici.map(c=>c.nome);
+  const aoaGen = buildSheet(headerGen, (cod) => State.clienti.generici.map(c => c.righe[cod] || 0));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoaGen), "Ordini generici");
+
+  // Coop
+  const headerCoop = State.clienti.coop.map(c=>c.nome);
+  const aoaCoop = buildSheet(headerCoop, (cod) => State.clienti.coop.map(c => c.righe[cod] || 0));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoaCoop), "Ordini Coop Alleanza");
+
+  // Totali per referenza
+  const totRef = State.totalePerReferenza();
+  const aoaTot = [["Codice","Descrizione","Totale colli"]];
+  for (const cod of codiciOrdinatiUfficiale()) {
+    const q = totRef[cod] || 0;
+    aoaTot.push([cod, CATALOGO[cod].nome, q]);
+  }
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoaTot), "Totali Tutti");
+
+  // Totale Lando per tipologia (matrice per ordine, come in app)
+  let colonneLandoTipoExcel = [];
+  State.clienti.lando.forEach(c => c.ordini.forEach((o,idx) => colonneLandoTipoExcel.push({
+    nome: `${c.nome}${o.numOrdine ? ' ('+o.numOrdine+')' : ''}`, righe: o.righe
+  })));
+  const aoaTipo = [["Tipologia", ...colonneLandoTipoExcel.map(c=>c.nome), "TOTALE"]];
+  for (const [cat,nome] of Object.entries(CATEGORIE)) {
+    const vals = colonneLandoTipoExcel.map(c => State.totalePerTipologiaSingoloOrdine(c.righe)[cat] || 0);
+    const tot = vals.reduce((a,b)=>a+b,0);
+    aoaTipo.push([nome, ...vals, tot]);
+  }
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoaTipo), "Totali Lando x tipologia");
+
+  const dataStr = State.data.toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Ordini_Gelato_${dataStr}.xlsx`);
+  mostraToast('✓ Excel esportato');
+}
+
+// ---------- FULLSCREEN (utile su iPad/desktop per usare tutto lo schermo) ----------
+const btnFullscreen = document.getElementById('btnFullscreen');
+if (btnFullscreen) {
+  btnFullscreen.addEventListener('click', () => {
+    const el = document.documentElement;
+    if (!document.fullscreenElement) {
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {
+          mostraToast('Schermo intero non disponibile in questo browser. Su iPad: aggiungi l\'app alla schermata Home per usarla a schermo intero.');
+        });
+      } else {
+        mostraToast('Schermo intero non disponibile in questo browser. Su iPad: aggiungi l\'app alla schermata Home per usarla a schermo intero.');
+      }
+    } else {
+      document.exitFullscreen();
+    }
+  });
+}
+
+// ---------- INIT ----------
+renderTabs();
+renderMain();
+
+
+</script>
+</body>
+</html>
