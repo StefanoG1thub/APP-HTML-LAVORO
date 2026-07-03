@@ -143,6 +143,7 @@ td.qty-zero{color:#c4bdaa;}
 .badge.lando{background:var(--amarena);}
 .badge.coop{background:var(--pistacchio-dark);}
 .badge.sarcedo{background:var(--caramello);}
+.badge.conad{background:var(--pistacchio);}
 .modal-backdrop{
   position:fixed; inset:0; background:rgba(20,30,20,0.55); z-index:200;
   display:flex; align-items:flex-end; justify-content:center;
@@ -437,7 +438,7 @@ function rilevaFormato(testo) {
   if (/PUNTO DI CONSEGNA/i.test(testo) && /Ordine a Fornitore - Conferma/i.test(testo)) return 'lando';
   if (/COOP ALLEANZA/i.test(testo)) return 'coop_alleanza';
   if (/Ordine a Fornitore - Sarcedo/i.test(testo) || /coopmarostica/i.test(testo)) return 'sarcedo';
-  if (/Ordine Gelato Lattebusche/i.test(testo) && /Totale colli/i.test(testo)) return 'bb_app';
+  if (/Ordine Gelato (Lattebusche|Conad)/i.test(testo) && /Totale colli/i.test(testo)) return 'bb_app';
   if (/RDAVENETA/i.test(testo) || /RDA VENETA/i.test(testo)) return 'rda_veneta';
   return 'sconosciuto';
 }
@@ -507,7 +508,7 @@ const BB_NOME_TO_CODICE = {
   "sorbetti::Caffè":4979, "sorbetti::Limone":4984, "sorbetti::Liquirizia":4989,
 };
 
-function parseBBApp(testo){
+function parseTestoLinee(testo, mappaNomiCodice){
   const righe = [];
   const sconosciute = [];
   // Rimuove caratteri Unicode invisibili (word joiner, zero-width space/joiner, BOM) che
@@ -539,26 +540,30 @@ function parseBBApp(testo){
     // il trattino "-" con en-dash – o em-dash — durante la digitazione o l'esportazione)
     const m = riga.match(/^[•·\-–—\*]?\s*(.+?)\s*[\-–—]\s*(\d+)\s*$/);
     if (m && catAttuale) {
-      const nomeBB = m[1].trim();
+      const nomeProd = m[1].trim();
       const qta = parseInt(m[2]);
       // Lookup robusto: prova match esatto, poi normalizzato (case/spazi-insensitive)
-      let codice = BB_NOME_TO_CODICE[catAttuale + '::' + nomeBB];
+      let codice = mappaNomiCodice[catAttuale + '::' + nomeProd];
       if (!codice) {
-        const chiaveNorm = norm(nomeBB);
-        const trovata = Object.keys(BB_NOME_TO_CODICE).find(k => k.startsWith(catAttuale + '::') && norm(k.split('::')[1]) === chiaveNorm);
-        if (trovata) codice = BB_NOME_TO_CODICE[trovata];
+        const chiaveNorm = norm(nomeProd);
+        const trovata = Object.keys(mappaNomiCodice).find(k => k.startsWith(catAttuale + '::') && norm(k.split('::')[1]) === chiaveNorm);
+        if (trovata) codice = mappaNomiCodice[trovata];
       }
       if (codice && qta > 0) {
-        righe.push({codice, qta, descrizione_pdf: nomeBB});
+        righe.push({codice, qta, descrizione_pdf: nomeProd});
       } else if (qta > 0) {
-        sconosciute.push(nomeBB);
+        sconosciute.push(nomeProd);
       }
     }
   }
   if (sconosciute.length) {
-    console.warn('BB: prodotti non riconosciuti:', sconosciute);
+    console.warn('Prodotti non riconosciuti:', sconosciute);
   }
   return righe;
+}
+
+function parseBBApp(testo){
+  return parseTestoLinee(testo, BB_NOME_TO_CODICE);
 }
 
 function elaboraTesto(testo, nomeOrigine){
@@ -582,7 +587,9 @@ function elaboraTesto(testo, nomeOrigine){
     risultato.dataConsegna = r.dataConsegna;
   } else if (formato === 'bb_app') {
     risultato.righe = parseBBApp(testo);
-    risultato.cliente = null; // il nome del bar va indicato da chi inserisce
+    // Se il messaggio proviene dall'app Conad (unico punto vendita) il nome cliente
+    // si precompila da solo; per Bar Bianchi (più bar) va indicato da chi inserisce.
+    risultato.cliente = /Ordine Gelato Conad/i.test(testo) ? 'Conad' : null;
   } else if (formato === 'rda_veneta') {
     const r = parseRdaVeneta(testo);
     risultato.righe = r.righe;
@@ -756,7 +763,12 @@ const State = {
 
   reset(){
     this.clienti = {lando: [], generici: [], coop: []};
-    this.inizializzaGiorno();
+    // Nota: non richiamiamo più inizializzaGiorno() qui. Prima lo facevamo, ma questo
+    // ripopolava subito i punti vendita Lando previsti per il giorno, dando l'impressione
+    // che "Azzera giornata" non svuotasse la sottocategoria "Gestione colonne". Ora l'azzeramento
+    // è totale: i punti Lando del calendario settimanale verranno riproposti alla riapertura
+    // dell'app (vedi INIT in fondo al file), non subito dopo l'azzeramento.
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
   }
 };
 
@@ -792,7 +804,47 @@ function chiudiModal(){
 }
 
 document.getElementById('dateLabel').textContent = fmtData(State.data);
-State.inizializzaGiorno();
+
+// ===== Persistenza locale (salva automaticamente per non perdere i dati se l'app viene chiusa) =====
+const STORAGE_KEY = 'gestioneOrdiniGelato_v1';
+
+function salvaStato(){
+  try {
+    const payload = {
+      dataSalvata: new Date().toDateString(), // usato per capire se il salvataggio è di oggi o di un giorno precedente
+      gruppoAttivo: State.gruppoAttivo,
+      clienti: State.clienti,
+      _uid: State._uid,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch(e) {
+    console.warn('Impossibile salvare lo stato:', e);
+  }
+}
+
+function caricaStato(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const payload = JSON.parse(raw);
+    if (payload.dataSalvata !== new Date().toDateString()) {
+      // Salvataggio di un giorno precedente: non lo ripristiniamo, si riparte puliti
+      localStorage.removeItem(STORAGE_KEY);
+      return false;
+    }
+    State.clienti = payload.clienti || {lando: [], generici: [], coop: []};
+    State._uid = payload._uid || 1;
+    State.gruppoAttivo = payload.gruppoAttivo || 'lando';
+    return true;
+  } catch(e) {
+    console.warn('Impossibile ripristinare lo stato salvato:', e);
+    return false;
+  }
+}
+
+const ripristinato = caricaStato();
+State.inizializzaGiorno(); // completa eventuali punti Lando previsti oggi ma non ancora presenti
+if (ripristinato) mostraToast('📂 Ripristinati i dati della sessione precedente');
 
 // ---------- TAB BAR ----------
 const TABS = [
@@ -822,6 +874,7 @@ function renderMain(){
   else if (State.gruppoAttivo === 'coop') main.innerHTML = renderCoopView();
   else if (State.gruppoAttivo === 'totali') main.innerHTML = renderTotaliView();
   attachMainEvents();
+  salvaStato();
 }
 
 // ---------- VISTA LANDO ----------
@@ -1230,8 +1283,9 @@ function apriUploadPDF(gruppo){
 
 function mostraAnteprimaConferma(risultato, gruppo){
   const root = document.getElementById('modalRoot');
-  const formatoLabel = {sarcedo:'Sarcedo', coop_alleanza:'Coop Alleanza', lando:'F.lli Lando', bb_app:'Bar Bianchi', rda_veneta:'RDA Veneta'}[risultato.formato] || 'Sconosciuto';
-  const badgeClass = {sarcedo:'sarcedo', coop_alleanza:'coop', lando:'lando', bb_app:'coop', rda_veneta:'coop'}[risultato.formato] || '';
+  let formatoLabel = {sarcedo:'Sarcedo', coop_alleanza:'Coop Alleanza', lando:'F.lli Lando', bb_app:'Bar Bianchi', rda_veneta:'RDA Veneta'}[risultato.formato] || 'Sconosciuto';
+  let badgeClass = {sarcedo:'sarcedo', coop_alleanza:'coop', lando:'lando', bb_app:'coop', rda_veneta:'coop'}[risultato.formato] || '';
+  if (risultato.formato === 'bb_app' && risultato.cliente === 'Conad') { formatoLabel = 'Conad'; badgeClass = 'conad'; }
 
   const righeConDati = risultato.righe.map(r => ({...r, nome: CATALOGO[r.codice] ? CATALOGO[r.codice].nome : '???'}));
 
@@ -1332,8 +1386,8 @@ function apriIncollaTestoBB(nomePrecompilato){
   root.innerHTML = `
   <div class="modal-backdrop" id="backdropIncolla">
     <div class="modal">
-      <h3>Incolla ordine Bar Bianchi</h3>
-      <div class="modal-sub">Copia il messaggio dall'app BB (o da Note/WhatsApp dopo averlo copiato) e incollalo qui sotto.</div>
+      <h3>Incolla ordine (Bar Bianchi / Conad)</h3>
+      <div class="modal-sub">Copia il messaggio dall'app BB o Conad (o da Note/WhatsApp dopo averlo copiato) e incollalo qui sotto. Per Conad il nome cliente si compila da solo.</div>
       <textarea id="testoIncollaBB" placeholder="🧊 Ordine Gelato Lattebusche..." style="width:100%; min-height:200px; padding:10px; border:1.5px solid var(--linea); border-radius:10px; font-family:inherit; font-size:0.9rem;"></textarea>
       <div class="row" style="margin-top:10px;">
         <input type="text" id="nomeBarBB" placeholder="Nome del bar (es. BB Granmichele)" value="${nomePrecompilato || ''}" style="flex:1;">
@@ -1350,15 +1404,18 @@ function apriIncollaTestoBB(nomePrecompilato){
 
   document.getElementById('btnElaboraIncolla').addEventListener('click', () => {
     const testo = document.getElementById('testoIncollaBB').value.trim();
-    const nomeBar = document.getElementById('nomeBarBB').value.trim();
+    let nomeBar = document.getElementById('nomeBarBB').value.trim();
     if (!testo) { mostraToast('⚠️ Incolla il testo dell\'ordine'); return; }
-    if (!nomeBar) { mostraToast('⚠️ Inserisci il nome del bar'); return; }
 
     const risultato = elaboraTestoIncollato(testo);
     if (risultato.formato !== 'bb_app' || risultato.righe.length === 0) {
       mostraToast('⚠️ Testo non riconosciuto. Verifica di averlo copiato per intero.');
       return;
     }
+    if (!nomeBar) {
+      nomeBar = risultato.cliente || ''; // 'Conad' se rilevato automaticamente
+    }
+    if (!nomeBar) { mostraToast('⚠️ Inserisci il nome del bar'); return; }
     risultato.cliente = nomeBar;
     mostraAnteprimaConferma(risultato, 'generici');
   });
