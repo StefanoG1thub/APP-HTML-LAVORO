@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>DDT Sconto</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, Helvetica, sans-serif; background: #f5f4f0; color: #1a1a18; padding: 1rem 1rem 4rem; }
+h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.sub { font-size: 13px; color: #888; margin-bottom: 1.5rem; }
+.card { background: #fff; border-radius: 14px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #e0ddd6; }
+.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #aaa; margin-bottom: 0.75rem; }
+table { width: 100%; border-collapse: collapse; }
+thead th { font-size: 10px; color: #aaa; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 0 4px 6px; text-align: right; }
+thead th:first-child { text-align: left; }
+tbody tr { border-top: 1px solid #f0ede8; }
+tbody td { padding: 6px 4px; vertical-align: middle; }
+input[type=text], input[type=number] {
+  width: 100%; padding: 7px 6px; font-size: 14px; border-radius: 8px;
+  border: 1px solid #e0ddd6; background: #fafaf8; color: #1a1a18;
+  -webkit-appearance: none; font-family: inherit;
+}
+input[type=number] { text-align: right; }
+.netto { color: #0d6e4f; font-weight: 600; font-size: 13px; text-align: right; white-space: nowrap; }
+.totcell { font-size: 13px; text-align: right; white-space: nowrap; }
+.delbtn { background: none; border: none; font-size: 20px; color: #ccc; cursor: pointer; padding: 4px 8px; }
+.delbtn:active { color: #e24b4a; }
+.btnrow { display: flex; gap: 8px; margin-top: 8px; }
+.addbtn, .resetbtn { flex: 1; padding: 10px; font-size: 14px; border-radius: 10px; cursor: pointer; font-family: inherit; border: 1px dashed #d0cdc6; background: none; color: #888; }
+.resetbtn { color: #e24b4a; border-color: #f0ddd6; }
+.addbtn:active { background: #f5f4f0; }
+.resetbtn:active { background: #fff0ee; }
+.metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 1rem; }
+.metric { background: #fff; border-radius: 12px; padding: 0.75rem; border: 1px solid #e0ddd6; }
+.mlabel { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; font-weight: 700; }
+.mvalue { font-size: 15px; font-weight: 700; color: #1a1a18; }
+.mvalue.green { color: #0d6e4f; }
+.calcbtn { background: #1a1a18; color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; font-family: inherit; margin-bottom: 1rem; }
+.calcbtn:active { background: #333; }
+.res-row { display: grid; grid-template-columns: 2fr 0.6fr 0.6fr 0.9fr; gap: 4px; padding: 8px 0; border-top: 1px solid #f0ede8; align-items: center; }
+.res-nome { font-size: 13px; }
+.res-max { font-size: 11px; color: #bbb; text-align: center; }
+.res-qty { text-align: center; font-weight: 800; font-size: 22px; color: #0d6e4f; }
+.res-sub { text-align: right; font-size: 13px; }
+.totline { display: flex; justify-content: space-between; padding: 6px 0; }
+.totline .lbl { font-size: 14px; color: #888; }
+.totline .val { font-size: 15px; font-weight: 700; }
+.green { color: #0d6e4f; } .warn { color: #ba7517; } .red { color: #e24b4a; }
+.diffnote { text-align: center; margin-top: 8px; padding: 10px; border-radius: 10px; font-size: 13px; }
+.diffnote.ok { background: #eaf3de; color: #3b6d11; }
+.diffnote.warn { background: #faeeda; color: #854f0b; }
+.diffnote.err { background: #fcebeb; color: #a32d2d; }
+.note { font-size: 11px; color: #bbb; text-align: center; margin-top: 1.5rem; line-height: 1.6; }
+</style>
+</head>
+<body>
+<h1>Calcolatore DDT sconto</h1>
+<p class="sub">Lattebusche — sconto extra 10% in merce</p>
+
+<div class="card">
+  <div class="card-title">Articoli &nbsp;·&nbsp; <span style="color:#0d6e4f">Netto = listino −25% −32%</span></div>
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align:left">Articolo</th>
+        <th>Qtà</th>
+        <th>Listino</th>
+        <th>Netto</th>
+        <th>Totale</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="btnrow">
+    <button class="addbtn" onclick="aggiungi()">+ Aggiungi</button>
+    <button class="resetbtn" onclick="azzera()">↺ Azzera</button>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><div class="mlabel">Totale</div><div class="mvalue" id="m1">€ 0,00</div></div>
+  <div class="metric"><div class="mlabel">Sconto 10%</div><div class="mvalue" id="m2">€ 0,00</div></div>
+  <div class="metric"><div class="mlabel">Netto finale</div><div class="mvalue green" id="m3">€ 0,00</div></div>
+</div>
+
+<button class="calcbtn" onclick="calcola()">Calcola DDT sconto</button>
+<div id="result"></div>
+<p class="note">Ricerca esaustiva della combinazione più vicina allo sconto esatto.<br>La differenza residua si compensa sul prossimo ordine.</p>
+
+<script>
+var D = [
+  { nome: 'Cono amarena (4402)', qty: 24, listino: 7.647 },
+  { nome: 'Cono pan/cacao (4403)', qty: 24, listino: 7.647 },
+  { nome: 'Ministecco (4508)', qty: 30, listino: 6.560 },
+  { nome: 'Ministecco mandorla (4513)', qty: 30, listino: 7.819 }
+];
+
+function netto(l) { var a = l - l*0.25; return a - a*0.32; }
+function e2(n) { return '\u20ac\u00a0' + n.toFixed(2).replace('.',','); }
+function e3(n) { return '\u20ac\u00a0' + n.toFixed(3).replace('.',','); }
+
+function aggiorna() {
+  var tot = 0;
+  for (var i=0; i<D.length; i++) tot += D[i].qty * netto(D[i].listino);
+  document.getElementById('m1').textContent = e2(tot);
+  document.getElementById('m2').textContent = e2(tot*0.1);
+  document.getElementById('m3').textContent = e2(tot*0.9);
+}
+
+function render() {
+  var tb = document.getElementById('tbody');
+  tb.innerHTML = '';
+  for (var i=0; i<D.length; i++) {
+    var tr = document.createElement('tr');
+    var n0 = netto(D[i].listino);
+    var t0 = D[i].qty * n0;
+    tr.innerHTML =
+      '<td><input type="text" value="'+D[i].nome+'" placeholder="Articolo" data-i="'+i+'" data-f="nome" onchange="cambia(this)"></td>'+
+      '<td><input type="number" value="'+D[i].qty+'" min="0" step="1" inputmode="numeric" data-i="'+i+'" data-f="qty" onchange="cambia(this)" style="width:56px"></td>'+
+      '<td><input type="number" value="'+D[i].listino+'" min="0" step="0.001" inputmode="decimal" data-i="'+i+'" data-f="listino" onchange="cambia(this)" style="width:72px"></td>'+
+      '<td class="netto" id="net'+i+'">'+e3(n0)+'</td>'+
+      '<td class="totcell" id="tot'+i+'">'+e2(t0)+'</td>'+
+      '<td><button class="delbtn" data-i="'+i+'" onclick="elimina(this)">\u00d7</button></td>';
+    tb.appendChild(tr);
+  }
+  aggiorna();
+}
+
+function cambia(el) {
+  var i = parseInt(el.getAttribute('data-i'));
+  var f = el.getAttribute('data-f');
+  if (f === 'nome') { D[i].nome = el.value; return; }
+  D[i][f] = parseFloat(el.value) || 0;
+  var n0 = netto(D[i].listino);
+  var nel = document.getElementById('net'+i);
+  var tel = document.getElementById('tot'+i);
+  if (nel) nel.textContent = e3(n0);
+  if (tel) tel.textContent = e2(D[i].qty * n0);
+  aggiorna();
+}
+
+function elimina(btn) {
+  var i = parseInt(btn.getAttribute('data-i'));
+  D.splice(i,1);
+  render();
+}
+
+function aggiungi() { D.push({nome:'',qty:1,listino:0}); render(); }
+
+function azzera() {
+  if (confirm('Vuoi azzerare tutti gli articoli?')) {
+    D = [];
+    render();
+    document.getElementById('result').innerHTML = '';
+  }
+}
+
+function calcola() {
+  var prezzi = [], qtyMax = [], tot = 0;
+  for (var i=0; i<D.length; i++) {
+    prezzi.push(netto(D[i].listino));
+    qtyMax.push(D[i].qty);
+    tot += D[i].qty * prezzi[i];
+  }
+  var sconto = tot * 0.1;
+  var n = D.length;
+  var bDiff = 1e9, bTot = 0, bCombo = [];
+  for (var i=0; i<n; i++) bCombo.push(0);
+
+  function cerca(idx, combo, parz) {
+    if (idx === n) {
+      var d = Math.abs(sconto - parz);
+      if (d < bDiff) { bDiff=d; bTot=parz; bCombo=combo.slice(); }
+      return;
+    }
+    for (var q=0; q<=qtyMax[idx]; q++) { combo[idx]=q; cerca(idx+1, combo, parz+q*prezzi[idx]); }
+  }
+
+  var nc = 1;
+  for (var i=0; i<n; i++) nc *= (qtyMax[i]+1);
+  var c = []; for (var i=0;i<n;i++) c.push(0);
+
+  if (nc <= 1000000) {
+    cerca(0, c, 0);
+  } else {
+    var rem = sconto;
+    var units = [];
+    for (var i=0;i<n;i++) for (var q=0;q<qtyMax[i];q++) units.push(i);
+    units.sort(function(a,b){return prezzi[b]-prezzi[a];});
+    for (var u=0;u<units.length;u++) {
+      var ii=units[u];
+      if (prezzi[ii]<=rem+0.0001){bCombo[ii]++;rem-=prezzi[ii];}
+    }
+    bTot=0; for(var i=0;i<n;i++) bTot+=bCombo[i]*prezzi[i];
+    bDiff=Math.abs(sconto-bTot);
+  }
+
+  var rows='';
+  for (var i=0;i<n;i++) {
+    rows+='<div class="res-row">'+
+      '<span class="res-nome">'+(D[i].nome||'\u2014')+'</span>'+
+      '<span class="res-max">max '+qtyMax[i]+'</span>'+
+      '<span class="res-qty">'+bCombo[i]+'</span>'+
+      '<span class="res-sub">'+e2(bCombo[i]*prezzi[i])+'</span>'+
+      '</div>';
+  }
+
+  var vc = bDiff<0.01?'green':bDiff<0.5?'warn':'red';
+  var dc = bDiff<0.01?'ok':bDiff<0.5?'warn':'err';
+  var msg = bDiff<0.01?'\u2713 Sconto esatto!':'Differenza residua: '+e2(bDiff)+' \u2014 compensare sul prossimo ordine';
+
+  document.getElementById('result').innerHTML =
+    '<div class="card">'+
+    '<div class="card-title">DDT sconto \u2014 CF da stornare</div>'+
+    '<div class="res-row" style="border-top:none;padding-bottom:4px">'+
+    '<span style="font-size:10px;color:#aaa;text-transform:uppercase">Articolo</span>'+
+    '<span style="font-size:10px;color:#aaa;text-align:center">Max</span>'+
+    '<span style="font-size:10px;color:#aaa;text-align:center">CF</span>'+
+    '<span style="font-size:10px;color:#aaa;text-align:right">Subtot.</span>'+
+    '</div>'+
+    rows+
+    '<div style="border-top:1px solid #e0ddd6;margin-top:8px;padding-top:8px">'+
+    '<div class="totline"><span class="lbl">Totale DDT sconto</span><span class="val '+vc+'">'+e2(bTot)+'</span></div>'+
+    '<div class="totline"><span class="lbl">Sconto da fare</span><span class="val">'+e2(sconto)+'</span></div>'+
+    '</div>'+
+    '<div class="diffnote '+dc+'">'+msg+'</div>'+
+    '</div>';
+}
+
+render();
+</script>
+</body>
+</html>
