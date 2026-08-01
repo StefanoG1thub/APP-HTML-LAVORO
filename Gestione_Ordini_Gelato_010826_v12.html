@@ -733,6 +733,13 @@ const State = {
     if (c && c.ordini.length === 0) this.rimuoviClienteLando(clienteId);
   },
 
+  modificaRigheLandoSlot(clienteId, idx, righeMap, etichetta){
+    const c = this.clienti.lando.find(c => c.id === clienteId);
+    if (!c || !c.ordini[idx]) return;
+    c.ordini[idx].righe = righeMap;
+    if (etichetta !== undefined) c.ordini[idx].etichetta = etichetta || null;
+  },
+
   aggiungiClienteGenerico(nome){
     let esistente = this.clienti.generici.find(c => c.nome === nome);
     if (!esistente) {
@@ -1014,7 +1021,7 @@ function renderLandoView(){
 
   html += `<div class="card"><h2 style="font-size:0.9rem;">Gestione colonne</h2><div class="client-list">`;
   colonne.forEach(col => {
-    html += `<span class="pill">${col.nome}${col.numOrdine?` (${col.numOrdine})`:''} <span class="x" data-rimuovi-lando="${col.clienteId}|${col.ordineIdx}">✕</span></span>`;
+    html += `<span class="pill">${col.nome}${col.numOrdine?` (${col.numOrdine})`:''} <span class="x" style="color:var(--pistacchio-dark);" data-modifica-lando="${col.clienteId}|${col.ordineIdx}">✏️</span> <span class="x" data-rimuovi-lando="${col.clienteId}|${col.ordineIdx}">✕</span></span>`;
   });
   html += `</div></div>`;
 
@@ -1239,6 +1246,16 @@ function attachMainEvents(){
   const selLando = document.getElementById('selectAggiungiLando');
   if (selLando) selLando.addEventListener('change', (e) => {
     if (e.target.value) { State.aggiungiClienteLando(e.target.value); renderMain(); }
+  });
+
+  document.querySelectorAll('[data-modifica-lando]').forEach(el => {
+    el.addEventListener('click', () => {
+      const [clienteId, idx] = el.dataset.modificaLando.split('|');
+      const c = State.clienti.lando.find(c => c.id === clienteId);
+      if (!c || !c.ordini[parseInt(idx)]) return;
+      const ordine = c.ordini[parseInt(idx)];
+      apriInserimentoManuale('lando', c.nome, ordine.righe, {clienteId, idx: parseInt(idx), etichetta: ordine.etichetta});
+    });
   });
 
   document.querySelectorAll('[data-rimuovi-lando]').forEach(el => {
@@ -1520,24 +1537,25 @@ function apriIncollaTestoBB(nomePrecompilato){
 }
 
 
-function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti){
+function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti, editContextLando){
   const root = document.getElementById('modalRoot');
   const codici = codiciOrdinatiUfficiale();
   righeEsistenti = righeEsistenti || {};
 
   const titoloGruppo = {lando:'F.lli Lando', generici:'Ordini Generici', coop:'Coop Alleanza e Consumatori'}[gruppo];
+  const titoloModal = editContextLando ? `Modifica ordine — ${titoloGruppo}` : `Inserimento manuale — ${titoloGruppo}`;
   let extraCampi = '';
   if (gruppo === 'lando') {
     extraCampi = `
       <div class="row" style="margin-bottom:10px; flex-direction:column; align-items:stretch; gap:8px;">
-        <select id="manualeNomeLando">
+        <select id="manualeNomeLando" ${editContextLando ? 'disabled' : ''}>
           <option value="">Seleziona punto vendita…</option>
           ${PUNTI_LANDO.map(p=>`<option value="${p}" ${p===nomePrecompilato?'selected':''}>${p}</option>`).join('')}
         </select>
         <select id="manualeEtichettaLando">
-          <option value="">Ordine unico</option>
-          <option value="Esposizione">1° ordine (esposizione)</option>
-          <option value="Scorta">2° ordine (scorta)</option>
+          <option value="" ${!editContextLando || !editContextLando.etichetta ? 'selected' : ''}>Ordine unico</option>
+          <option value="Esposizione" ${editContextLando && editContextLando.etichetta==='Esposizione' ? 'selected' : ''}>1° ordine (esposizione)</option>
+          <option value="Scorta" ${editContextLando && editContextLando.etichetta==='Scorta' ? 'selected' : ''}>2° ordine (scorta)</option>
         </select>
       </div>`;
   } else if (gruppo === 'coop' || gruppo === 'generici') {
@@ -1567,8 +1585,8 @@ function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti){
   root.innerHTML = `
   <div class="modal-backdrop" id="backdropManuale">
     <div class="modal">
-      <h3>Inserimento manuale — ${titoloGruppo}</h3>
-      <div class="modal-sub">Scrivi solo le quantità che ti servono, lascia vuoto il resto.</div>
+      <h3>${titoloModal}</h3>
+      <div class="modal-sub">${editContextLando ? 'Correggi le quantità già caricate (es. scorta già presente in cella).' : 'Scrivi solo le quantità che ti servono, lascia vuoto il resto.'}</div>
       ${extraCampi}
       <div class="totale-box" style="display:flex; justify-content:space-between; align-items:center; background:var(--linea); border-radius:10px; padding:10px 14px; margin-bottom:10px; font-weight:700;">
         <span>Totale colli</span>
@@ -1577,7 +1595,7 @@ function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti){
       <div id="manualeRows">${righeHtml}</div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="btnAnnullaManuale" style="flex:1;">Annulla</button>
-        <button class="btn btn-primary" id="btnConfermaManuale" style="flex:2;">✓ Salva ordine</button>
+        <button class="btn btn-primary" id="btnConfermaManuale" style="flex:2;">✓ ${editContextLando ? 'Salva modifiche' : 'Salva ordine'}</button>
       </div>
     </div>
   </div>`;
@@ -1606,10 +1624,14 @@ function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti){
     }
 
     if (gruppo === 'lando') {
-      const nome = document.getElementById('manualeNomeLando').value;
-      if (!nome) { mostraToast('⚠️ Seleziona il punto vendita Lando'); return; }
       const etichetta = document.getElementById('manualeEtichettaLando').value || null;
-      State.aggiungiOrdineLando(nome, null, null, righeMap, etichetta);
+      if (editContextLando) {
+        State.modificaRigheLandoSlot(editContextLando.clienteId, editContextLando.idx, righeMap, etichetta);
+      } else {
+        const nome = document.getElementById('manualeNomeLando').value;
+        if (!nome) { mostraToast('⚠️ Seleziona il punto vendita Lando'); return; }
+        State.aggiungiOrdineLando(nome, null, null, righeMap, etichetta);
+      }
       State.gruppoAttivo = 'lando';
     } else if (gruppo === 'coop') {
       const nome = document.getElementById('manualeNomeCliente').value.trim();
