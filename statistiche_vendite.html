@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistiche Vendite Gelato — Lattebusche</title>
+<style>
+  :root{
+    --navy:#1f3b53;
+    --navy-dark:#16293b;
+    --ice:#eaf3fa;
+    --stripe:#dcecf7;
+    --paper:#ffffff;
+    --ink:#1c2b36;
+    --muted:#5c7182;
+    --accent:#c2703d;
+    --ok:#2f7a4f;
+    --line:#c7d6e2;
+    --radius:6px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Segoe UI",Arial,Helvetica,sans-serif;
+    background:var(--ice);
+    color:var(--ink);
+  }
+  header{
+    background:linear-gradient(135deg,var(--navy),var(--navy-dark));
+    color:#fff;
+    padding:18px 24px;
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    flex-wrap:wrap;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+  }
+  header h1{
+    font-size:20px;
+    margin:0;
+    font-weight:700;
+    letter-spacing:.2px;
+  }
+  header .sub{
+    font-size:13px;
+    color:#c9dcec;
+  }
+  nav.tabs{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    padding:12px 24px 0 24px;
+    background:var(--paper);
+    border-bottom:2px solid var(--navy);
+  }
+  nav.tabs button{
+    border:1px solid var(--line);
+    border-bottom:none;
+    padding:8px 14px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    border-radius:6px 6px 0 0;
+    transition:opacity .15s, transform .1s;
+    opacity:.62;
+  }
+  nav.tabs button:hover{opacity:.85;}
+  nav.tabs button.active{
+    opacity:1;
+    transform:translateY(1px);
+    box-shadow:0 -2px 0 rgba(0,0,0,.15) inset;
+  }
+  main{padding:20px 24px 60px 24px;}
+  .toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:14px;
+  }
+  .toolbar button{
+    background:var(--paper);
+    border:1px solid var(--line);
+    padding:7px 12px;
+    border-radius:var(--radius);
+    font-size:13px;
+    cursor:pointer;
+    color:var(--navy);
+    font-weight:600;
+  }
+  .toolbar button:hover{background:var(--stripe);}
+  .toolbar button.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .toolbar button.primary:hover{background:var(--navy-dark);}
+  .toolbar button.danger{color:#a33;border-color:#e2b6b6;}
+  .toolbar button.danger:hover{background:#fbeaea;}
+  .scheda-title{
+    font-size:17px;
+    font-weight:700;
+    color:var(--navy-dark);
+    margin:0 0 10px 0;
+  }
+  table.grid{
+    border-collapse:collapse;
+    width:100%;
+    background:var(--paper);
+    font-size:13px;
+    box-shadow:0 1px 3px rgba(0,0,0,.08);
+  }
+  table.grid thead th{
+    background:var(--sp, var(--navy));
+    color:#fff;
+    padding:8px 6px;
+    text-align:center;
+    font-weight:700;
+    font-size:15px;
+    line-height:1.25;
+    position:sticky;
+    top:0;
+    white-space:normal;
+    word-break:break-word;
+  }
+  table.grid thead tr.codes th{
+    background:var(--sp-dark, var(--navy-dark));
+    color:#ffffff;
+    font-weight:700;
+    font-size:18px;
+  }
+  table.grid td, table.grid th.rowhead{
+    padding:6px 8px;
+    text-align:center;
+    border-bottom:1px solid var(--line);
+  }
+  table.grid th.rowhead{
+    text-align:center;
+    background:var(--sp-dark, var(--navy-dark));
+    font-weight:700;
+    font-size:18px;
+    color:#ffffff;
+    white-space:nowrap;
+  }
+  table.grid tbody tr:nth-child(odd){background:var(--sp30, var(--ice));}
+  table.grid tbody tr:nth-child(even){background:var(--ss30, var(--stripe));}
+  table.grid tbody tr.totali{
+    background:var(--sp-dark, var(--navy-dark)) !important;
+    color:#fff;
+    font-weight:700;
+    font-size:16px;
+  }
+  table.grid tbody tr.totali th.rowhead{background:var(--sp-dark, var(--navy-dark)) !important;color:#fff;}
+  table.grid tbody tr.totali td{border:none;}
+  td.qty{font-variant-numeric:tabular-nums;font-size:15px;}
+  td.tot{font-weight:700;color:var(--navy-dark);font-size:17px;}
+  input.vp-edit{
+    width:64px;
+    text-align:center;
+    border:1px solid transparent;
+    background:transparent;
+    font-size:16px;
+    font-weight:600;
+    font-family:inherit;
+    color:var(--muted);
+    border-radius:4px;
+  }
+  input.vp-edit:hover, input.vp-edit:focus{
+    border-color:var(--line);
+    background:#fff;
+    color:var(--ink);
+  }
+  td.residuo-col{font-size:16px;font-weight:600;color:var(--navy-dark);}
+  .pallet-badge{
+    display:inline-block;
+    min-width:22px;
+    padding:3px 9px;
+    border-radius:10px;
+    background:var(--ok);
+    color:#fff;
+    font-weight:700;
+    font-size:16px;
+  }
+  .pallet-badge.zero{background:#b9c4cc;}
+  .pallet-tbc{color:var(--accent);font-style:italic;font-size:13px;}
+
+  /* Import panel */
+  .panel{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:18px;
+  }
+  .panel h2{font-size:14px;margin:0 0 8px 0;color:var(--navy-dark);}
+  .panel p{font-size:12.5px;color:var(--muted);margin:0 0 10px 0;line-height:1.5;}
+  textarea{
+    width:100%;
+    min-height:110px;
+    font-family:"SFMono-Regular",Consolas,monospace;
+    font-size:12.5px;
+    padding:10px;
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    resize:vertical;
+  }
+  .import-actions{display:flex;gap:10px;margin-top:10px;align-items:center;}
+  .import-log{
+    margin-top:10px;
+    font-size:12.5px;
+    max-height:160px;
+    overflow:auto;
+    border-top:1px dashed var(--line);
+    padding-top:8px;
+  }
+  .import-log div{padding:2px 0;}
+  .import-log .err{color:#a33;}
+  .import-log .ok{color:var(--ok);}
+  .ddt-log{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+  .ddt-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--ice);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:4px 6px 4px 12px;
+    font-size:12.5px;
+    color:var(--ink);
+  }
+  .ddt-chip.verificato{background:#e3f3e8;border-color:#bfe0c9;color:#256b41;}
+  .ddt-chip button{
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    font-size:13px;
+    color:inherit;
+    padding:2px 4px;
+    border-radius:50%;
+  }
+  .ddt-chip button:hover{background:rgba(0,0,0,.08);}
+  .hidden{display:none;}
+  footer{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--muted);
+    padding:20px;
+  }
+  @media print{
+    header, nav.tabs, .toolbar, .panel{display:none !important;}
+    body{background:#fff;}
+    main{padding:0;}
+    table.grid{box-shadow:none;}
+    table.grid thead th{background:#e5edf3 !important;color:#000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+  @media (max-width:700px){
+    main{padding:14px;}
+    header{padding:14px;}
+    table.grid{font-size:11.5px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Statistiche Vendite Gelato</h1>
+  <span class="sub">Lattebusche · Cold Service — Stefano</span>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+
+<main>
+
+  <div class="panel">
+    <h2>Importa dati da un DDT</h2>
+    <p>
+      Incolla qui l'elenco in formato JSON con codice cliente (destinazione merce), codice articolo e quantità in pezzi.
+      La somma è progressiva: ogni importazione si <strong>aggiunge</strong> a quanto già registrato per quella referenza/cliente, non lo sostituisce.
+      Aggiungi <code>"ddt":numero</code> (e opzionalmente <code>"data":"gg/mm/aa"</code>) per far comparire il documento nella ricevuta qui sotto.<br>
+      Esempio: <code>[{"ddt":653,"data":"02/07/26","cliente":"117761","articolo":4001,"qty":24}]</code>
+    </p>
+    <textarea id="importBox" placeholder='[{"ddt":653,"cliente":"117761","articolo":4001,"qty":24}, ...]'></textarea>
+    <div class="import-actions">
+      <button class="primary" onclick="importData()">Importa e somma</button>
+      <button onclick="document.getElementById('importBox').value=''">Svuota</button>
+      <span id="importStatus" style="font-size:12.5px;color:var(--muted);"></span>
+    </div>
+    <div class="import-log" id="importLog"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Ricevuta DDT registrati</h2>
+    <p>
+      Elenco dei numeri DDT importati (indipendentemente da quando), da confrontare con il Riepilogo Documenti Lattebusche.
+      Clicca su ○ per segnare un DDT come verificato (diventa ✓ verde), su ✕ per toglierlo dalla ricevuta senza toccare i dati di vendita già registrati.
+    </p>
+    <div id="ddtLogBox" class="ddt-log"></div>
+    <div class="import-actions">
+      <button onclick="esportaDdtLog()">Copia elenco</button>
+      <button onclick="pulisciDdtVerificati()">Rimuovi i verificati dalla ricevuta</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="primary" onclick="window.print()">Stampa scheda corrente</button>
+    <button onclick="exportBackup()">Esporta backup (JSON)</button>
+    <button onclick="document.getElementById('restoreFile').click()">Importa backup</button>
+    <input type="file" id="restoreFile" accept="application/json" class="hidden" onchange="restoreBackup(event)">
+    <button class="danger" onclick="resetAll()">Azzera tutti i dati</button>
+  </div>
+
+  <h2 class="scheda-title" id="schedaTitle"></h2>
+  <div style="overflow-x:auto;">
+    <table class="grid" id="grid"></table>
+  </div>
+
+</main>
+
+<footer>Dati salvati in locale nel browser (localStorage) — nessun invio a server esterni.</footer>
+
+<script>
+/* ============ CATALOGO ============ */
+// codice articolo -> {desc, categoria, valorePallet (null = da confermare)}
+const CATALOGO = {
+  4001:["Panna Cacao 500",624], 4002:["Fragola Limone 500",624], 4003:["Pistacchio Nocciola 500",624],
+  4004:["Stracciatella 500",624], 4005:["Crokko Menta 500",624], 4006:["Fiordipanna 500",624],
+  4007:["Strudel Mela Cannella 500",624], 4009:["Limone 500",624], 4010:["Yogurt Frutti Bosco 500",624],
+  4014:["Caramello Salato 500",624], 4015:["Crokko Lampone 500",624], 4018:["Gran Nocciolato 500",624],
+  4020:["Panna var. Amarena 500",624], 4023:["Mascarpone var. Pera 500",624], 4024:["Ricotta var. Arancio 500",624],
+  4605:["Tiramisù 500",624], 4882:["Panna Cacao Bio 500",624], 4883:["Crema Vaniglia Bio 500",624],
+  4926:["Fiordipanna senza lattosio 500",624],
+  4032:["Yogurt Frutti Bosco 1000",288], 4051:["Panna Cacao 1000",288], 4052:["Fragola Limone 1000",288],
+  4054:["Stracciatella 1000",288], 4055:["Limone 1000",288], 4057:["Fiordipanna 1000",288],
+  4058:["Panna var. Amarena 1000",288], 4301:["Caramello Salato 1000",288],
+  4401:["Cono Panna (6)",432], 4402:["Cono Amarena (6)",432], 4403:["Cono Panna Cacao (6)",432],
+  4431:["Cono Yogurt Frutti Bosco (6)",432], 4555:["Cono Croccante Mandorle (5)",432], 4556:["Cono Caffè (5)",432],
+  4406:["Biscotti Panna-Cacao (8)",504], 4407:["Biscotti Panna (5)",504], 4723:["Biscotti Stracciatella (8)",504],
+  4400:["Minicono (8)",105], 4409:["Minibiscotto (8)",105],
+  4508:["Ministecco (6)",504], 4513:["Ministecco Mandorla (6)",504],
+  4423:["Ricoperto (6)",504], 4501:["Ricoperto Menta (6)",504], 4515:["Ricoperto Lampone (6)",504],
+  4979:["Sorbetto Caffè",600], 4984:["Sorbetto Limone",600], 4989:["Sorbetto Liquirizia",600],
+  4193:["Crema Caffè",600]
+};
+const ORDINE_REFERENZE = Object.keys(CATALOGO).map(Number);
+
+/* ============ SCHEDE / CLIENTI ============ */
+const SCHEDE = {
+"F.lli Lando":[["Camin","300013"],["Camposampiero","116533"],["Pianiga","103889"],["Cittadella","117761"],["Conselve","555204"],["Mirano","104175"],["Veggiano","111610"],["Vigonza","101793"]],
+"Coop Alleanza 3.0":[["Bolzano Vicentino","104149"],["Carrè","121235"],["Padova Via della Pace","120789"],["Ponte San Nicolò","120912"],["Pove del Grappa","119439"],["San Vito Leguzzano","111840"],["Schio","112390"],["Vicenza Via Bedeschi","104148"],["Vigonza","115104"]],
+"Coop Cons. Marostica":[["Breganze","124314"],["Sarcedo","119865"],["Via Montello","103148"],["Via Vecellio","103147"]],
+"Caseificio San Rocco":[["Bassano del Grappa","126272"],["Belvedere di Tezze","103685"],["Tezze su Brenta","103684"]],
+"Bar Bianco":[["Camazzole","1132"],["Grantortino",null],["Lanzè","0125"]],
+"SVAS":[["Padova","108715"],["Villafranca Pad.","108710"]],
+"Biosapori":[["Bassano del Grappa","122143"],["Noventa Padovana","123546"]],
+"Tradizionali":[["Az. Agr. Le Corti","126398"],["Bianchini Fab.","112552"],["Caseificio Barbarano","107687"],["Società Consortile","555989"]],
+"Ho.Re.Ca.":[["Circolo del Patronato","103593"],["Nicolin Mario","109838"],["Monte Altore Found.","126574"]]
+};
+
+/* ============ COLORI PER SCHEDA ============ */
+// primary = colore 1 (linguetta/intestazione), secondary = colore 2 (alternanza riga pari)
+const SCHEDA_COLORS = {
+  "F.lli Lando":         {primary:"#1f5fa8", secondary:"#b23a34"}, // blu / rosso tenue
+  "Coop Alleanza 3.0":   {primary:"#c1272d", secondary:"#ffffff"}, // rosso / bianco
+  "Coop Cons. Marostica":{primary:"#8e2430", secondary:"#ffffff"}, // rosso (tono diverso) / bianco
+  "Caseificio San Rocco":{primary:"#2f7a4f", secondary:"#d9a441"}, // verde / giallo cedro
+  "Bar Bianco":          {primary:"#2a8fbd", secondary:"#7d5ba6"}, // azzurro / viola
+  "SVAS":                {primary:"#c0392b", secondary:"#e0b400"}, // rosso / giallo
+  "Biosapori":           {primary:"#3f8f5f", secondary:"#a9d3b8"}, // verde (due toni)
+  "Tradizionali":        {primary:"#8a7967", secondary:"#d8cfc3"}, // tortora (due toni)
+  "Ho.Re.Ca.":           {primary:"#6b7680", secondary:"#ffffff"}, // grigio / bianco
+};
+
+function hexToRgba(hex, alpha){
+  const h = hex.replace("#","");
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function darken(hex, factor){
+  const h = hex.replace("#","");
+  const r = Math.round(parseInt(h.substring(0,2),16)*factor);
+  const g = Math.round(parseInt(h.substring(2,4),16)*factor);
+  const b = Math.round(parseInt(h.substring(4,6),16)*factor);
+  return `rgb(${r},${g},${b})`;
+}
+function applySchedaColors(scheda){
+  const c = SCHEDA_COLORS[scheda] || {primary:"#1f3b53", secondary:"#dcecf7"};
+  const root = document.documentElement.style;
+  root.setProperty("--sp", c.primary);
+  root.setProperty("--sp-dark", darken(c.primary, 0.72));
+  root.setProperty("--sp30", hexToRgba(c.primary, 0.30));
+  root.setProperty("--ss30", hexToRgba(c.secondary, 0.30));
+}
+
+// mappa globale codice cliente -> {scheda, colonna}
+const MAPPA_CLIENTI = {};
+for(const scheda in SCHEDE){
+  SCHEDE[scheda].forEach(([nome,cod])=>{
+    if(cod) MAPPA_CLIENTI[String(cod)] = {scheda, nome};
+  });
+}
+
+/* ============ STORAGE ============ */
+const LS_DATA = "gelato_stats_data_v1";   // {scheda: {referenza: {codiceCliente: qty}}}
+const LS_VP   = "gelato_stats_valorepallet_v1"; // {referenza: valore}
+const LS_LOG  = "gelato_stats_ddt_log_v1"; // {ddtNumero: {data: [dataISO opzionale], clienti: [nomi], importatoIl: iso}}
+
+function loadData(){
+  try{ return JSON.parse(localStorage.getItem(LS_DATA)) || {}; }catch(e){ return {}; }
+}
+function saveData(d){ localStorage.setItem(LS_DATA, JSON.stringify(d)); }
+function loadVP(){
+  try{ return JSON.parse(localStorage.getItem(LS_VP)) || {}; }catch(e){ return {}; }
+}
+function saveVP(v){ localStorage.setItem(LS_VP, JSON.stringify(v)); }
+function loadLog(){
+  try{ return JSON.parse(localStorage.getItem(LS_LOG)) || {}; }catch(e){ return {}; }
+}
+function saveLog(l){ localStorage.setItem(LS_LOG, JSON.stringify(l)); }
+
+let DATA = loadData();
+let VP = loadVP();
+let DDT_LOG = loadLog();
+function valorePallet(ref){
+  if(VP[ref] !== undefined && VP[ref] !== null && VP[ref] !== "") return Number(VP[ref]);
+  return CATALOGO[ref][1];
+}
+
+let schedaCorrente = Object.keys(SCHEDE)[0];
+
+/* ============ RENDER TABS ============ */
+function renderTabs(){
+  const nav = document.getElementById("tabs");
+  nav.innerHTML = "";
+  Object.keys(SCHEDE).forEach(scheda=>{
+    const b = document.createElement("button");
+    b.textContent = scheda;
+    const c = SCHEDA_COLORS[scheda] || {primary:"#1f3b53"};
+    b.style.background = c.primary;
+    b.style.color = "#fff";
+    b.style.borderColor = c.primary;
+    b.style.textShadow = "0 1px 1px rgba(0,0,0,.35)";
+    if(scheda===schedaCorrente) b.classList.add("active");
+    b.onclick = ()=>{ schedaCorrente = scheda; render(); };
+    nav.appendChild(b);
+  });
+}
+
+/* ============ RENDER GRID ============ */
+function render(){
+  applySchedaColors(schedaCorrente);
+  renderTabs();
+  document.getElementById("schedaTitle").textContent = schedaCorrente;
+  const clienti = SCHEDE[schedaCorrente];
+  const table = document.getElementById("grid");
+  table.innerHTML = "";
+
+  const thead = document.createElement("thead");
+  const trHeader = document.createElement("tr");
+  trHeader.innerHTML = `<th class="rowhead">Referenza</th>` +
+    clienti.map(([nome])=>`<th>${nome}</th>`).join("") +
+    `<th>Tot.</th><th>Pallet</th><th>Residuo</th><th>Valore<br>Pallet</th>`;
+  const trCodes = document.createElement("tr");
+  trCodes.className="codes";
+  trCodes.innerHTML = `<th class="rowhead">Cod. Cliente</th>` +
+    clienti.map(([,cod])=>`<th>${cod ?? "—"}</th>`).join("") +
+    `<th></th><th></th><th></th><th></th>`;
+  thead.appendChild(trHeader);
+  thead.appendChild(trCodes);
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  const totaliColonne = clienti.map(()=>0);
+
+  ORDINE_REFERENZE.forEach(ref=>{
+    const tr = document.createElement("tr");
+    let tot = 0;
+    let cellsHtml = `<th class="rowhead" title="${CATALOGO[ref][0]}">${ref}</th>`;
+    clienti.forEach(([nome,cod], idx)=>{
+      const val = (cod && DATA[schedaCorrente] && DATA[schedaCorrente][ref] && DATA[schedaCorrente][ref][cod]) || 0;
+      tot += val;
+      totaliColonne[idx] += val;
+      cellsHtml += `<td class="qty">${val || ""}</td>`;
+    });
+    const vp = valorePallet(ref);
+    let palletHtml, residuoHtml;
+    if(vp){
+      const pallet = Math.floor(tot / vp);
+      const residuo = tot % vp;
+      palletHtml = `<span class="pallet-badge ${pallet===0?'zero':''}">${pallet}</span>`;
+      residuoHtml = residuo;
+    } else {
+      palletHtml = `<span class="pallet-tbc">da confermare</span>`;
+      residuoHtml = "";
+    }
+    cellsHtml += `<td class="tot">${tot||0}</td><td class="pallet-col">${palletHtml}</td><td class="residuo-col">${residuoHtml}</td>`;
+    cellsHtml += `<td><input class="vp-edit" type="number" value="${vp ?? ''}" placeholder="?" onchange="setVP(${ref}, this.value)"></td>`;
+    tr.innerHTML = cellsHtml;
+    tbody.appendChild(tr);
+  });
+
+  // riga totali fardelli
+  const trTot = document.createElement("tr");
+  trTot.className="totali";
+  let totRowHtml = `<td>Totali fardelli</td>`;
+  totaliColonne.forEach(v=> totRowHtml += `<td>${v}</td>`);
+  totRowHtml += `<td>${totaliColonne.reduce((a,b)=>a+b,0)}</td><td></td><td></td><td></td>`;
+  trTot.innerHTML = totRowHtml;
+  tbody.appendChild(trTot);
+
+  table.appendChild(tbody);
+}
+
+function setVP(ref, val){
+  val = val === "" ? null : Number(val);
+  VP[ref] = val;
+  saveVP(VP);
+  render();
+}
+
+/* ============ IMPORT ============ */
+function importData(){
+  const box = document.getElementById("importBox");
+  const log = document.getElementById("importLog");
+  const status = document.getElementById("importStatus");
+  log.innerHTML = "";
+  let entries;
+  try{
+    entries = JSON.parse(box.value);
+    if(!Array.isArray(entries)) throw new Error("Il JSON deve essere un array");
+  }catch(e){
+    log.innerHTML = `<div class="err">Errore di formato JSON: ${e.message}</div>`;
+    status.textContent = "";
+    return;
+  }
+
+  let okCount = 0, errCount = 0;
+  const ddtToccatiOraStessa = new Set();
+  entries.forEach((e,i)=>{
+    const cod = String(e.cliente ?? "").trim();
+    const ref = Number(e.articolo);
+    const qty = Number(e.qty);
+    const ddtNum = e.ddt !== undefined ? String(e.ddt) : null;
+    const dataDdt = e.data || null;
+    const map = MAPPA_CLIENTI[cod];
+    if(!map){
+      log.innerHTML += `<div class="err">Riga ${i+1}: codice cliente "${cod}" non trovato in nessuna scheda.</div>`;
+      errCount++; return;
+    }
+    if(!CATALOGO[ref]){
+      log.innerHTML += `<div class="err">Riga ${i+1}: codice articolo ${ref} non presente nel catalogo.</div>`;
+      errCount++; return;
+    }
+    if(isNaN(qty)){
+      log.innerHTML += `<div class="err">Riga ${i+1}: quantità non valida.</div>`;
+      errCount++; return;
+    }
+    DATA[map.scheda] = DATA[map.scheda] || {};
+    DATA[map.scheda][ref] = DATA[map.scheda][ref] || {};
+    const prev = DATA[map.scheda][ref][cod] || 0;
+    DATA[map.scheda][ref][cod] = prev + qty;
+    log.innerHTML += `<div class="ok">${map.scheda} → ${map.nome}: art.${ref} ${prev} + ${qty} = ${prev+qty}</div>`;
+    okCount++;
+
+    if(ddtNum){
+      DDT_LOG[ddtNum] = DDT_LOG[ddtNum] || {clienti:[], scheda:map.scheda, data:dataDdt, importatoIl:new Date().toISOString()};
+      if(!DDT_LOG[ddtNum].clienti.includes(map.nome)) DDT_LOG[ddtNum].clienti.push(map.nome);
+      if(dataDdt) DDT_LOG[ddtNum].data = dataDdt;
+      ddtToccatiOraStessa.add(ddtNum);
+    }
+  });
+
+  saveData(DATA);
+  if(ddtToccatiOraStessa.size){ saveLog(DDT_LOG); }
+  status.textContent = `${okCount} righe importate, ${errCount} errori.` +
+    (ddtToccatiOraStessa.size ? ` DDT registrati: ${[...ddtToccatiOraStessa].join(", ")}.` : "");
+  render();
+  renderDdtLog();
+}
+
+function renderDdtLog(){
+  const box = document.getElementById("ddtLogBox");
+  const nums = Object.keys(DDT_LOG).sort((a,b)=>Number(a)-Number(b));
+  if(nums.length===0){
+    box.innerHTML = `<span style="color:var(--muted);font-size:12.5px;">Nessun DDT registrato ancora — includi "ddt":numero nelle righe che importi per popolare questa ricevuta.</span>`;
+    return;
+  }
+  box.innerHTML = nums.map(n=>{
+    const rec = DDT_LOG[n];
+    const verificato = !!rec.verificato;
+    return `<span class="ddt-chip ${verificato?'verificato':''}" title="${rec.clienti.join(', ')}${rec.data?(' — '+rec.data):''}">
+      DDT ${n}${rec.data?(' ('+rec.data+')'):''}
+      <button onclick="toggleVerificato('${n}')" title="${verificato?'Segna da verificare':'Segna verificato'}">${verificato?'✓':'○'}</button>
+      <button onclick="rimuoviDdtLog('${n}')" title="Rimuovi dalla ricevuta (non tocca i dati)">✕</button>
+    </span>`;
+  }).join("");
+}
+function toggleVerificato(n){
+  DDT_LOG[n].verificato = !DDT_LOG[n].verificato;
+  saveLog(DDT_LOG);
+  renderDdtLog();
+}
+function rimuoviDdtLog(n){
+  delete DDT_LOG[n];
+  saveLog(DDT_LOG);
+  renderDdtLog();
+}
+function esportaDdtLog(){
+  const nums = Object.keys(DDT_LOG).sort((a,b)=>Number(a)-Number(b));
+  const testo = nums.map(n=>{
+    const rec = DDT_LOG[n];
+    return `DDT ${n}${rec.data?(' - '+rec.data):''} - ${rec.clienti.join(', ')} - ${rec.verificato?'verificato':'da verificare'}`;
+  }).join("\n");
+  navigator.clipboard?.writeText(testo);
+  alert("Elenco DDT copiato negli appunti:\n\n"+testo);
+}
+function pulisciDdtVerificati(){
+  if(!confirm("Rimuovere dalla ricevuta tutti i DDT già segnati come verificati? (i dati di vendita restano intatti)")) return;
+  Object.keys(DDT_LOG).forEach(n=>{ if(DDT_LOG[n].verificato) delete DDT_LOG[n]; });
+  saveLog(DDT_LOG);
+  renderDdtLog();
+}
+
+/* ============ BACKUP / RESET ============ */
+function exportBackup(){
+  const payload = {data:DATA, valorePallet:VP, exportedAt:new Date().toISOString()};
+  const blob = new Blob([JSON.stringify(payload,null,1)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `backup_statistiche_gelato_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+function restoreBackup(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const payload = JSON.parse(reader.result);
+      if(payload.data) DATA = payload.data;
+      if(payload.valorePallet) VP = payload.valorePallet;
+      saveData(DATA); saveVP(VP);
+      render();
+      alert("Backup ripristinato correttamente.");
+    }catch(e){
+      alert("File di backup non valido: "+e.message);
+    }
+  };
+  reader.readAsText(file);
+}
+function resetAll(){
+  if(!confirm("Sicuro di voler azzerare TUTTI i dati di vendita? L'operazione non è reversibile (fai prima un backup).")) return;
+  if(!confirm("Confermi definitivamente l'azzeramento completo?")) return;
+  DATA = {};
+  saveData(DATA);
+  render();
+}
+
+render();
+renderDdtLog();
+</script>
+</body>
+</html>
