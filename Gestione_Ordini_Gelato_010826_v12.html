@@ -130,7 +130,7 @@ tbody tr.cat-header td{
   background:var(--pistacchio); color:#fff; font-weight:700; text-align:left;
   position:static;
 }
-.tablewrap{overflow-x:auto; border-radius:10px; border:1px solid var(--linea); max-height:70vh; overflow-y:auto;}
+.tablewrap{overflow-x:auto; border-radius:10px; border:1px solid var(--linea); max-height:70vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
 th.tot{background:var(--pistacchio-dark); color:#fff; font-weight:800;}
 td.tot{font-weight:800; color:var(--amarena-dark); border-left:2px solid var(--linea);}
 td.qty-cell{font-weight:600; color:var(--pistacchio-dark);}
@@ -210,6 +210,34 @@ td.qty-zero{color:#c4bdaa;}
 <div id="toastRoot"></div>
 
 <script>
+
+// ===== Fix scroll bloccato su tablet: blocca lo scroll della pagina sotto quando è aperta una finestra =====
+(function(){
+  const modalRoot = document.getElementById('modalRoot');
+  let scrollYSalvato = 0;
+  const osserva = new MutationObserver(()=>{
+    const aperto = modalRoot.children.length > 0;
+    const giaBloccato = document.body.classList.contains('modal-open');
+    if(aperto && !giaBloccato){
+      scrollYSalvato = window.scrollY || window.pageYOffset || 0;
+      document.body.classList.add('modal-open');
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollYSalvato}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+    } else if(!aperto && giaBloccato){
+      document.body.classList.remove('modal-open');
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollYSalvato);
+    }
+  });
+  osserva.observe(modalRoot, {childList:true});
+})();
 
 // Catalogo prodotti Lattebusche - codice: {nome, categoria, ordine secondo elenco ufficiale}
 // Sequenza e descrizioni come da "Elenco Gelato Lattebusche" ufficiale
@@ -843,6 +871,20 @@ function fmtData(d){
   return d.toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
 }
 
+// Data mostrata nell'intestazione di ogni scheda: di norma è il giorno dopo
+// rispetto alla data generica in alto (ordini oggi = consegna domani).
+// Eccezione: per F.lli Lando il lunedì l'ordine è per lunedì stesso (tentata vendita),
+// quindi in quel caso non si aggiunge un giorno.
+function fmtDataConsegnaScheda(scheda){
+  const giornoSettimana = State.data.getDay(); // 0=Dom,1=Lun,2=Mar...6=Sab
+  if(scheda === 'lando' && giornoSettimana === 1){
+    return fmtData(State.data);
+  }
+  const d = new Date(State.data);
+  d.setDate(d.getDate() + 1);
+  return fmtData(d);
+}
+
 function nomeProdottoTag(cod){
   const prod = CATALOGO[cod];
   if (!prod) return '???';
@@ -967,7 +1009,7 @@ function renderLandoView(){
 
   let html = `
   <div class="card">
-    <h2>F.lli Lando — ${fmtData(State.data)}</h2>
+    <h2>F.lli Lando — ${fmtDataConsegnaScheda('lando')}</h2>
     <div class="note-box">Punti vendita previsti oggi popolati in automatico. Puoi aggiungerne altri o caricare un secondo ordine (scorta) per Conselve/Cittadella.</div>
     <div class="row" style="margin-bottom:10px;">
       <button class="btn btn-primary" id="btnCaricaPdfLando">📄 Carica PDF ordine</button>
@@ -1043,7 +1085,7 @@ function renderGenericiView(){
 
   let html = `
   <div class="card">
-    <h2>Ordini Generici — ${fmtData(State.data)}</h2>
+    <h2>Ordini Generici — ${fmtDataConsegnaScheda('generici')}</h2>
     <div class="row" style="margin-bottom:10px;">
       <button class="btn btn-primary" id="btnCaricaPdfGenerico">📄 Carica PDF ordine</button>
       <button class="btn btn-primary" id="btnIncollaTestoBB">📋 Incolla ordine BB</button>
@@ -1111,7 +1153,7 @@ function renderCoopView(){
 
   let html = `
   <div class="card">
-    <h2>Coop Alleanza e Consumatori — ${fmtData(State.data)}</h2>
+    <h2>Coop Alleanza e Consumatori — ${fmtDataConsegnaScheda('coop')}</h2>
     <div class="note-box">Nessun calendario fisso: aggiungi ogni cliente quando arriva il suo ordine.</div>
     <div class="row">
       <button class="btn btn-primary" id="btnCaricaPdfCoop">📄 Carica PDF ordine Coop</button>
