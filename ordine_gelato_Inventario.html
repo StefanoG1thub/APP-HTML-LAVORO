@@ -81,8 +81,13 @@
 <div id="listaProdotti"></div>
 
 <div class="totale-box">
-  <span class="totale-label">Totale colli</span>
+  <span class="totale-label">Totale fardelli</span>
   <span class="totale-num" id="totale">0</span>
+</div>
+
+<div class="totale-box" style="margin-top:-0.6rem;">
+  <span class="totale-label">Pezzi equivalenti (invio)</span>
+  <span class="totale-num" id="totalePezzi" style="color:#0d9488;">0</span>
 </div>
 
 <div class="annotazioni-box">
@@ -95,6 +100,18 @@
 
 <script>
 // Struttura: categorie con relativi prodotti. Flag bio / sl per evidenziare.
+// Fattore di conversione fardello -> pezzi per categoria: tutte le linee sono 6pz/fardello,
+// tranne le Vasche 1000gr (4pz/fardello) e la Crema Caffè (venduta a fardello = resta 1).
+var CATEGORIA_FATTORE = {
+  "Linea Vasche 500 gr.": 6,
+  "Linea Vasche 1000 gr.": 4,
+  "Linea Coni": 6,
+  "Linea Biscotti": 6,
+  "Linea Mini": 6,
+  "Linea Stecchi": 6,
+  "Linea Sorbetto": 6,
+  "Linea Crema Caffè": 1
+};
 var categorie = [
   {
     nome: "Linea Vasche 500 gr.",
@@ -250,8 +267,18 @@ function cambiaQt(i, delta) {
   el.textContent = qty[i];
   el.className = qty[i] > 0 ? "qty attivo" : "qty";
   var tot = 0;
-  for (var j = 0; j < qty.length; j++) tot += qty[j];
+  var totPezzi = 0;
+  var idx = 0;
+  categorie.forEach(function(cat) {
+    var fattore = CATEGORIA_FATTORE[cat.nome] || 6;
+    cat.prodotti.forEach(function() {
+      tot += qty[idx];
+      totPezzi += qty[idx] * fattore;
+      idx++;
+    });
+  });
   document.getElementById("totale").textContent = tot;
+  document.getElementById("totalePezzi").textContent = totPezzi;
 }
 
 function resetta() {
@@ -261,22 +288,24 @@ function resetta() {
     document.getElementById("q" + i).className = "qty";
   }
   document.getElementById("totale").textContent = "0";
+  document.getElementById("totalePezzi").textContent = "0";
   document.getElementById("annotazioni").value = "";
 }
 
 function invia() {
   var righe = [];
   var tot = 0;
-  var categoriaCorrente = "";
   var i = 0;
 
   categorie.forEach(function(cat) {
     var righeCategoria = [];
+    var fattore = CATEGORIA_FATTORE[cat.nome] || 6;
     cat.prodotti.forEach(function(p) {
       var nome = typeof p === "string" ? p : p.n;
       if (qty[i] > 0) {
-        righeCategoria.push("• " + nome + " - " + qty[i]);
-        tot += qty[i];
+        var qConvertita = qty[i] * fattore;
+        righeCategoria.push("• " + nome + " - " + qConvertita);
+        tot += qConvertita;
       }
       i++;
     });
