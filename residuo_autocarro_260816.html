@@ -69,6 +69,22 @@
   .btn-invia:active { background: #1da851; }
   .reset-btn { width: 100%; margin-top: 10px; padding: 10px; background: transparent; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; color: #6b7280; cursor: pointer; }
   .reset-btn:active { background: #f3f4f6; }
+
+  /* Tastierino numerico personalizzato (stile Numbers) — solo su tablet/touch */
+  #tastierino {
+    position: fixed; left: 0; right: 0; bottom: 0; background: #2c2c2e;
+    display: none; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    padding: 1px; z-index: 999; box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+  }
+  #tastierino.aperto { display: grid; }
+  #tastierino button {
+    background: #48484a; color: #fff; border: none; font-size: 22px; font-weight: 500;
+    padding: 18px 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  #tastierino button:active { background: #6e6e70; }
+  #tastierino .tk-avanti { background: #0d9488; font-size: 15px; }
+  #tastierino .tk-canc { background: #3a3a3c; font-size: 18px; }
+  body.tastiera-aperta { padding-bottom: 260px; }
 </style>
 </head>
 <body>
@@ -76,7 +92,7 @@
 <header>
   <div class="header-titoli">
     <h1>🚛 Residuo Autocarro</h1>
-    <p>Ordine per Porta 1→8 — invia a te stesso su WhatsApp · <span style="color:#9ca3af;">build 6</span></p>
+    <p>Ordine per Porta 1→8 — invia a te stesso su WhatsApp · <span style="color:#9ca3af;">build 7</span></p>
   </div>
   <div class="data-box" id="dataOggi"></div>
 </header>
@@ -100,6 +116,13 @@
 
 <button class="btn-invia" onclick="invia()">📲 Invia a te stesso su WhatsApp</button>
 <button class="reset-btn" onclick="resetta()">↺ Azzera tutto</button>
+
+<div id="tastierino">
+  <button onclick="tkDigit(7)">7</button><button onclick="tkDigit(8)">8</button><button onclick="tkDigit(9)">9</button>
+  <button onclick="tkDigit(4)">4</button><button onclick="tkDigit(5)">5</button><button onclick="tkDigit(6)">6</button>
+  <button onclick="tkDigit(1)">1</button><button onclick="tkDigit(2)">2</button><button onclick="tkDigit(3)">3</button>
+  <button class="tk-canc" onclick="tkCancella()">⌫</button><button onclick="tkDigit(0)">0</button><button class="tk-avanti" onclick="tkAvanti()">avanti →</button>
+</div>
 
 <script>
 // Lista unica ordinata secondo la disposizione fisica del camion (Porta 1 -> Porta 8),
@@ -167,6 +190,12 @@ var prodotti = [
 
 var qty = new Array(prodotti.length).fill(0);
 
+// Tastierino personalizzato attivo solo su schermi touch di dimensione tablet
+// (iPad), per evitare che Safari mostri la tastiera fluttuante intera al posto
+// del numerico. Su telefono e PC il campo resta normale.
+var usaTastierinoCustom = ('ontouchstart' in window) && window.innerWidth >= 700;
+var campoAttivo = -1;
+
 // Render lista unica, senza intestazioni di sezione visibili
 var container = document.getElementById("listaProdotti");
 var card = document.createElement("div");
@@ -180,12 +209,16 @@ prodotti.forEach(function(p, i) {
   if (p.tipo === "bio") tagHtml = '<span class="tag bio">Bio</span>';
   if (p.tipo === "sl") tagHtml = '<span class="tag sl">S.Lattosio</span>';
 
+  var inputAttrs = usaTastierinoCustom
+    ? 'readonly onfocus="apriTastierino(' + i + ')"'
+    : 'type="tel" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" onfocus="this.select()" onchange="impostaQt(' + i + ', this.value)" onkeydown="vaiCampoSuccessivo(event, ' + i + ')"';
+
   row.innerHTML =
     '<span class="num">' + p.cod + '</span>' +
     '<span class="nome">' + p.nome + tagHtml + '</span>' +
     '<div class="controlli">' +
       '<button class="btn-qty" tabindex="-1" onclick="cambiaQt(' + i + ',-1)">−</button>' +
-      '<input class="qty-input" id="q' + i + '" type="tel" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" value="0" onfocus="this.select()" onchange="impostaQt(' + i + ', this.value)" onkeydown="vaiCampoSuccessivo(event, ' + i + ')">' +
+      '<input class="qty-input" id="q' + i + '" value="0" ' + inputAttrs + '>' +
       '<button class="btn-qty" tabindex="-1" onclick="cambiaQt(' + i + ',+1)">+</button>' +
     '</div>';
   card.appendChild(row);
@@ -238,12 +271,64 @@ function vaiCampoSuccessivo(event, i) {
 function resetta() {
   for (var i = 0; i < qty.length; i++) {
     qty[i] = 0;
-    document.getElementById("q" + i).value = "0";
-    document.getElementById("q" + i).className = "qty-input";
+    var el = document.getElementById("q" + i);
+    el.value = "0";
+    el.className = "qty-input";
+    el.dataset.digitando = "0";
   }
   document.getElementById("totale").textContent = "0";
   document.getElementById("totalePezzi").textContent = "0";
   document.getElementById("annotazioni").value = "";
+  chiudiTastierino();
+}
+
+// --- Tastierino numerico personalizzato (iPad) ---
+function apriTastierino(i) {
+  campoAttivo = i;
+  document.getElementById("tastierino").className = "aperto";
+  document.body.className = "tastiera-aperta";
+  document.getElementById("q" + i).scrollIntoView({block: "center", behavior: "smooth"});
+}
+
+function tkDigit(d) {
+  if (campoAttivo < 0) return;
+  var el = document.getElementById("q" + campoAttivo);
+  var attuale = (el.dataset.digitando === "1") ? el.value : "";
+  var nuovo = (attuale === "0" ? "" : attuale) + d;
+  el.value = nuovo;
+  el.dataset.digitando = "1";
+  qty[campoAttivo] = parseInt(nuovo, 10) || 0;
+  el.className = qty[campoAttivo] > 0 ? "qty-input attivo" : "qty-input";
+  aggiornaTotali();
+}
+
+function tkCancella() {
+  if (campoAttivo < 0) return;
+  var el = document.getElementById("q" + campoAttivo);
+  var attuale = el.value.toString().slice(0, -1);
+  el.value = attuale || "0";
+  el.dataset.digitando = "1";
+  qty[campoAttivo] = parseInt(el.value, 10) || 0;
+  el.className = qty[campoAttivo] > 0 ? "qty-input attivo" : "qty-input";
+  aggiornaTotali();
+}
+
+function tkAvanti() {
+  if (campoAttivo < 0) return;
+  var el = document.getElementById("q" + campoAttivo);
+  el.dataset.digitando = "0";
+  var successivo = campoAttivo + 1;
+  if (successivo < prodotti.length) {
+    apriTastierino(successivo);
+  } else {
+    chiudiTastierino();
+  }
+}
+
+function chiudiTastierino() {
+  campoAttivo = -1;
+  document.getElementById("tastierino").className = "";
+  document.body.className = "";
 }
 
 function invia() {
