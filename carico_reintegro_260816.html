@@ -60,7 +60,13 @@
   .reset-btn { width: 100%; margin-top: 10px; padding: 10px; background: transparent; border: 1px solid #d1d5db; border-radius: 10px; font-size: 14px; color: #6b7280; cursor: pointer; }
   .reset-btn:active { background: #f3f4f6; }
 
-  /* Tastierino numerico personalizzato (stile Numbers) — solo su tablet/touch */
+  .btn-toggle-tk {
+    background: #fff; border: 1.5px solid #d1d5db; border-radius: 10px; padding: 8px 12px;
+    font-size: 12px; font-weight: 700; color: #6b7280; cursor: pointer; white-space: nowrap;
+  }
+  .btn-toggle-tk.attivo { background: #0d9488; border-color: #0d9488; color: #fff; }
+
+  /* Tastierino numerico personalizzato (stile Numbers) — solo se attivato dall'interruttore */
   #tastierino {
     position: fixed; left: 0; right: 0; bottom: 0; background: #2c2c2e;
     display: none; grid-template-columns: repeat(3, 1fr); gap: 1px;
@@ -82,9 +88,12 @@
 <header>
   <div class="header-titoli">
     <h1>📦 Carico Reintegro</h1>
-    <p>Ordine per codice — come da stampa DDT Lattebusche · <span style="color:#9ca3af;">build 7</span></p>
+    <p>Ordine per codice — come da stampa DDT Lattebusche · <span style="color:#9ca3af;">build 8</span></p>
   </div>
-  <div class="data-box" id="dataOggi"></div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <button class="btn-toggle-tk" id="btnToggleTastierino" onclick="toggleTastierino()">🔢 Tastierino iPad</button>
+    <div class="data-box" id="dataOggi"></div>
+  </div>
 </header>
 
 <div id="listaProdotti"></div>
@@ -175,36 +184,55 @@ var qty = new Array(prodotti.length).fill(0);
 var usaTastierinoCustom = ('ontouchstart' in window) && window.innerWidth >= 700;
 var campoAttivo = -1;
 
-// Render lista unica, senza intestazioni di categoria — solo l'ordine per codice
+// Render lista unica, senza intestazioni di categoria — solo l'ordine per codice.
+// Il tastierino personalizzato NON si attiva automaticamente (il rilevamento touch
+// è inaffidabile e su alcuni PC blocca la digitazione normale): è sempre l'interruttore
+// in alto a decidere. Di default è spento: tastiera normale, Tab/Invio funzionanti.
+var usaTastierinoCustom = false;
 var container = document.getElementById("listaProdotti");
-var card = document.createElement("div");
-card.className = "card";
 
-prodotti.forEach(function(p, i) {
-  var row = document.createElement("div");
-  row.className = "prodotto" + (p.tipo === "bio" ? " bio" : "") + (p.tipo === "sl" ? " senza-lattosio" : "") + (p.stagionale ? " stagionale" : "");
+function renderLista() {
+  container.innerHTML = "";
+  var card = document.createElement("div");
+  card.className = "card";
 
-  var tagHtml = "";
-  if (p.tipo === "bio") tagHtml = '<span class="tag bio">Bio</span>';
-  if (p.tipo === "sl") tagHtml = '<span class="tag sl">S.Lattosio</span>';
-  if (p.stagionale) tagHtml = '<span class="tag stagionale">Stagionale</span>';
+  prodotti.forEach(function(p, i) {
+    var row = document.createElement("div");
+    row.className = "prodotto" + (p.tipo === "bio" ? " bio" : "") + (p.tipo === "sl" ? " senza-lattosio" : "") + (p.stagionale ? " stagionale" : "");
 
-  var inputAttrs = usaTastierinoCustom
-    ? 'readonly onfocus="apriTastierino(' + i + ')"'
-    : 'type="tel" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" onfocus="this.select()" onchange="impostaQt(' + i + ', this.value)" onkeydown="vaiCampoSuccessivo(event, ' + i + ')"';
+    var tagHtml = "";
+    if (p.tipo === "bio") tagHtml = '<span class="tag bio">Bio</span>';
+    if (p.tipo === "sl") tagHtml = '<span class="tag sl">S.Lattosio</span>';
+    if (p.stagionale) tagHtml = '<span class="tag stagionale">Stagionale</span>';
 
-  row.innerHTML =
-    '<span class="num">' + p.cod + '</span>' +
-    '<span class="nome">' + p.nome + tagHtml + '</span>' +
-    '<div class="controlli">' +
-      '<button class="btn-qty" tabindex="-1" onclick="cambiaQt(' + i + ',-1)">−</button>' +
-      '<input class="qty-input" id="q' + i + '" value="0" ' + inputAttrs + '>' +
-      '<button class="btn-qty" tabindex="-1" onclick="cambiaQt(' + i + ',+1)">+</button>' +
-    '</div>';
-  card.appendChild(row);
-});
+    var inputAttrs = usaTastierinoCustom
+      ? 'readonly onfocus="apriTastierino(' + i + ')"'
+      : 'type="tel" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" onfocus="this.select()" onchange="impostaQt(' + i + ', this.value)" onkeydown="vaiCampoSuccessivo(event, ' + i + ')"';
 
-container.appendChild(card);
+    var valoreAttuale = qty[i] || 0;
+    row.innerHTML =
+      '<span class="num">' + p.cod + '</span>' +
+      '<span class="nome">' + p.nome + tagHtml + '</span>' +
+      '<div class="controlli">' +
+        '<button class="btn-qty" tabindex="-1" onclick="cambiaQt(' + i + ',-1)">−</button>' +
+        '<input class="qty-input' + (valoreAttuale > 0 ? ' attivo' : '') + '" id="q' + i + '" value="' + valoreAttuale + '" ' + inputAttrs + '>' +
+        '<button class="btn-qty" tabindex="-1" onclick="cambiaQt(' + i + ',+1)">+</button>' +
+      '</div>';
+    card.appendChild(row);
+  });
+
+  container.appendChild(card);
+}
+
+function toggleTastierino() {
+  usaTastierinoCustom = !usaTastierinoCustom;
+  var btn = document.getElementById("btnToggleTastierino");
+  btn.className = usaTastierinoCustom ? "btn-toggle-tk attivo" : "btn-toggle-tk";
+  chiudiTastierino();
+  renderLista();
+}
+
+renderLista();
 
 function aggiornaTotali() {
   var tot = 0;
