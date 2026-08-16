@@ -51,6 +51,9 @@
   .btn-qty:active { background: #e5e7eb; }
   .qty { min-width: 24px; text-align: center; font-size: 15px; font-weight: 600; color: #1a1a2e; }
   .qty.attivo { color: #0d9488; }
+  .qty-input { width: 46px; text-align: center; font-size: 16px; font-weight: 700; color: #1a1a2e; border: 1.5px solid #d1d5db; border-radius: 8px; padding: 5px 2px; -webkit-appearance: none; background: #fff; }
+  .qty-input:focus { outline: none; border-color: #0d9488; background: #f0fdfa; }
+  .qty-input.attivo { color: #0d9488; border-color: #0d9488; }
   .totale-box { background: #fff; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); padding: 14px 16px; margin: 1.2rem 0 1rem; display: flex; align-items: center; justify-content: space-between; }
   .totale-label { font-size: 14px; color: #6b7280; font-weight: 500; }
   .totale-num { font-size: 22px; font-weight: 700; color: #0d9488; }
@@ -174,7 +177,7 @@ prodotti.forEach(function(p, i) {
     '<span class="nome">' + p.nome + tagHtml + '</span>' +
     '<div class="controlli">' +
       '<button class="btn-qty" onclick="cambiaQt(' + i + ',-1)">−</button>' +
-      '<span class="qty" id="q' + i + '">0</span>' +
+      '<input class="qty-input" id="q' + i + '" type="tel" inputmode="numeric" pattern="[0-9]*" value="0" onfocus="this.select()" onchange="impostaQt(' + i + ', this.value)">' +
       '<button class="btn-qty" onclick="cambiaQt(' + i + ',+1)">+</button>' +
     '</div>';
   card.appendChild(row);
@@ -182,11 +185,7 @@ prodotti.forEach(function(p, i) {
 
 container.appendChild(card);
 
-function cambiaQt(i, delta) {
-  qty[i] = Math.max(0, qty[i] + delta);
-  var el = document.getElementById("q" + i);
-  el.textContent = qty[i];
-  el.className = qty[i] > 0 ? "qty attivo" : "qty";
+function aggiornaTotali() {
   var tot = 0;
   var totPezzi = 0;
   for (var j = 0; j < prodotti.length; j++) {
@@ -197,11 +196,30 @@ function cambiaQt(i, delta) {
   document.getElementById("totalePezzi").textContent = totPezzi;
 }
 
+function cambiaQt(i, delta) {
+  qty[i] = Math.max(0, qty[i] + delta);
+  var el = document.getElementById("q" + i);
+  el.value = qty[i];
+  el.className = qty[i] > 0 ? "qty-input attivo" : "qty-input";
+  aggiornaTotali();
+}
+
+// Digitazione diretta della quantità (utile per numeri grandi, evita 15-20 tap sul +)
+function impostaQt(i, valore) {
+  var n = parseInt(valore, 10);
+  if (isNaN(n) || n < 0) n = 0;
+  qty[i] = n;
+  var el = document.getElementById("q" + i);
+  el.value = n;
+  el.className = n > 0 ? "qty-input attivo" : "qty-input";
+  aggiornaTotali();
+}
+
 function resetta() {
   for (var i = 0; i < qty.length; i++) {
     qty[i] = 0;
-    document.getElementById("q" + i).textContent = "0";
-    document.getElementById("q" + i).className = "qty";
+    document.getElementById("q" + i).value = "0";
+    document.getElementById("q" + i).className = "qty-input";
   }
   document.getElementById("totale").textContent = "0";
   document.getElementById("totalePezzi").textContent = "0";
