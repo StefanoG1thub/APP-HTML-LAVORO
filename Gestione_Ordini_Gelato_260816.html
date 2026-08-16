@@ -195,7 +195,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 19</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 20</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -1335,8 +1335,9 @@ function renderInventarioView(){
     const tot = Object.values(map).reduce((s,q)=>s+(q||0),0);
 
     html += `<div class="card"><h2>${titolo}</h2><div class="note-box">${noteTesto}</div>
-      <div class="row" style="margin:10px 0;">
+      <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="${sotto}">📋 Incolla messaggio</button>
+        ${sotto === 'residuo' ? '<button class="btn btn-secondary" id="btnStampaGiacenze">🖨️ Stampa PDF Giacenze</button>' : ''}
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Quantità</th></tr></thead><tbody>`;
     let catCorrente = null;
@@ -1501,6 +1502,9 @@ function attachMainEvents(){
   document.querySelectorAll('[data-incolla-inventario]').forEach(btn => {
     btn.addEventListener('click', () => apriIncollaInventario(btn.dataset.incollaInventario));
   });
+
+  const btnStampaGiacenze = document.getElementById('btnStampaGiacenze');
+  if (btnStampaGiacenze) btnStampaGiacenze.addEventListener('click', stampaPdfGiacenze);
 
   document.querySelectorAll('[data-qta-inventario]').forEach(inp => {
     inp.addEventListener('change', (e) => {
@@ -1714,6 +1718,52 @@ function apriIncollaTestoBB(nomePrecompilato){
 
 
 // ---------- INCOLLA TESTO INVENTARIO (Residuo Autocarro / Carico Reintegro) ----------
+// ---------- STAMPA PDF GIACENZE (Residuo Autocarro) ----------
+// Carico Reintegro e Totali si stampano già quotidianamente via TVCE;
+// solo la Giacenza (Residuo Autocarro) non aveva un output cartaceo.
+function stampaPdfGiacenze(){
+  const map = State.inventario.residuo;
+  const oggi = new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  let righe = '';
+  let catCorrente = null;
+  let totale = 0;
+  for (const cod of codiciOrdinatiUfficiale()) {
+    const q = map[cod] || 0;
+    if (q === 0) continue;
+    const prod = CATALOGO[cod];
+    if (prod.cat !== catCorrente) {
+      catCorrente = prod.cat;
+      righe += `<tr class="cat"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
+    }
+    righe += `<tr><td>${prod.nome}</td><td>${cod}</td><td class="q">${q}</td></tr>`;
+    totale += q;
+  }
+  if (!righe) { mostraToast('⚠️ Nessuna giacenza registrata da stampare'); return; }
+
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
+    <title>Giacenze Autocarro - ${oggi}</title>
+    <style>
+      body{font-family:-apple-system,sans-serif; padding:24px; color:#1a1a2e;}
+      h1{font-size:20px; margin-bottom:2px;}
+      .data{color:#6b7280; font-size:13px; margin-bottom:18px;}
+      table{width:100%; border-collapse:collapse; font-size:13px;}
+      td,th{padding:6px 8px; border-bottom:1px solid #e5e7eb; text-align:left;}
+      th{background:#f0f4f8;}
+      td.q{text-align:right; font-weight:700;}
+      tr.cat td{background:#29ABE2; color:#fff; font-weight:700; text-transform:uppercase; font-size:11px;}
+      .tot{margin-top:14px; text-align:right; font-weight:800; font-size:15px;}
+      @media print { body{padding:0;} }
+    </style></head><body>
+    <h1>🚛 Giacenze Autocarro</h1>
+    <div class="data">${oggi}</div>
+    <table><thead><tr><th>Referenza</th><th>Codice</th><th>Quantità</th></tr></thead><tbody>${righe}</tbody></table>
+    <div class="tot">Totale: ${totale}</div>
+    </body></html>`);
+  w.document.close();
+  w.onload = () => w.print();
+}
+
 function apriIncollaInventario(tipo){
   const titolo = tipo === 'residuo' ? 'Residuo Autocarro' : 'Carico Reintegro';
   const root = document.getElementById('modalRoot');
