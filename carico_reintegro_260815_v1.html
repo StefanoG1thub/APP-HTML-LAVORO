@@ -177,7 +177,7 @@ prodotti.forEach(function(p, i) {
     '<span class="nome">' + p.nome + tagHtml + '</span>' +
     '<div class="controlli">' +
       '<button class="btn-qty" onclick="cambiaQt(' + i + ',-1)">−</button>' +
-      '<input class="qty-input" id="q' + i + '" type="tel" inputmode="numeric" pattern="[0-9]*" value="0" onfocus="this.select()" onchange="impostaQt(' + i + ', this.value)">' +
+      '<input class="qty-input" id="q' + i + '" type="tel" inputmode="numeric" pattern="[0-9]*" enterkeyhint="next" value="0" onfocus="this.select()" onchange="impostaQt(' + i + ', this.value)" onkeydown="vaiCampoSuccessivo(event, ' + i + ')">' +
       '<button class="btn-qty" onclick="cambiaQt(' + i + ',+1)">+</button>' +
     '</div>';
   card.appendChild(row);
@@ -213,6 +213,18 @@ function impostaQt(i, valore) {
   el.value = n;
   el.className = n > 0 ? "qty-input attivo" : "qty-input";
   aggiornaTotali();
+}
+
+// Invio (PC) o "Vai"/"Fatto" della tastiera numerica (mobile) sposta automaticamente
+// il cursore sul campo successivo, senza dover toccare/Tab manualmente ogni volta.
+function vaiCampoSuccessivo(event, i) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    impostaQt(i, event.target.value);
+    var successivo = document.getElementById("q" + (i + 1));
+    if (successivo) successivo.focus();
+    else event.target.blur();
+  }
 }
 
 function resetta() {
