@@ -98,7 +98,7 @@
 <header>
   <div class="header-titoli">
     <h1>🚛 Residuo Autocarro</h1>
-    <p>Ordine per Porta 1→8 — invia a te stesso su WhatsApp · <span style="color:#9ca3af;">build 8</span></p>
+    <p>Ordine per Porta 1→8 — invia a te stesso su WhatsApp · <span style="color:#9ca3af;">build 9</span></p>
   </div>
   <div style="display:flex; align-items:center; gap:8px;">
     <button class="btn-toggle-tk" id="btnToggleTastierino" onclick="toggleTastierino()">🔢 Tastierino iPad</button>
@@ -109,13 +109,8 @@
 <div id="listaProdotti"></div>
 
 <div class="totale-box">
-  <span class="totale-label">Totale fardelli</span>
+  <span class="totale-label">Totale colli</span>
   <span class="totale-num" id="totale">0</span>
-</div>
-
-<div class="totale-box" style="margin-top:-0.6rem;">
-  <span class="totale-label">Pezzi equivalenti (invio)</span>
-  <span class="totale-num" id="totalePezzi" style="color:#0d9488;">0</span>
 </div>
 
 <div class="annotazioni-box">
@@ -138,7 +133,8 @@
 // senza etichette di sezione visibili: aprendo le porte in sequenza trovi i codici già
 // nell'ordine giusto. Ogni riga del messaggio include il codice referenza, così l'app
 // di gestione lo riconosce direttamente senza bisogno di intestazioni di categoria.
-// Fattore = pezzi per fardello (6 standard, 4 vasche 1000gr, 1 crema caffè).
+// Nessuna conversione fardelli->pezzi: il numero scritto (colli) è quello che viene
+// inviato, la stessa unità con cui si inseriscono gli ordini clienti.
 var prodotti = [
   // Porta 1
   {cod:4513, nome:"Ministecco Mandorle", fattore:6},
@@ -250,13 +246,8 @@ renderLista();
 
 function aggiornaTotali() {
   var tot = 0;
-  var totPezzi = 0;
-  for (var j = 0; j < prodotti.length; j++) {
-    tot += qty[j];
-    totPezzi += qty[j] * prodotti[j].fattore;
-  }
+  for (var j = 0; j < prodotti.length; j++) tot += qty[j];
   document.getElementById("totale").textContent = tot;
-  document.getElementById("totalePezzi").textContent = totPezzi;
 }
 
 function cambiaQt(i, delta) {
@@ -299,7 +290,6 @@ function resetta() {
     el.dataset.digitando = "0";
   }
   document.getElementById("totale").textContent = "0";
-  document.getElementById("totalePezzi").textContent = "0";
   document.getElementById("annotazioni").value = "";
   chiudiTastierino();
 }
@@ -359,11 +349,11 @@ function invia() {
 
   prodotti.forEach(function(p, i) {
     if (qty[i] > 0) {
-      var qConvertita = qty[i] * p.fattore;
       // Codice referenza incluso in ogni riga: l'app di gestione lo riconosce
-      // direttamente, senza bisogno di intestazioni di categoria.
-      righe.push(p.cod + " " + p.nome + " " + qConvertita);
-      tot += qConvertita;
+      // direttamente, senza bisogno di intestazioni di categoria. Nessuna conversione:
+      // il numero è quello che scrivi (colli), la stessa unità degli ordini clienti.
+      righe.push(p.cod + " " + p.nome + " " + qty[i]);
+      tot += qty[i];
     }
   });
 
@@ -371,7 +361,7 @@ function invia() {
 
   var note = document.getElementById("annotazioni").value.trim();
 
-  var testo = "🧊 *Ordine Gelato Lattebusche*\n\n" + righe.join("\n") + "\n\n*Totale colli: " + tot + "*";
+  var testo = "🚛 *Residuo Autocarro*\n\n" + righe.join("\n") + "\n\n*Totale colli: " + tot + "*";
   if (note) {
     testo += "\n\n📝 *Annotazioni:*\n" + note;
   }
