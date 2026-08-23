@@ -195,7 +195,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 22</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 23</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -1541,7 +1541,17 @@ function attachMainEvents(){
       const [tipo, cod] = e.target.dataset.qtaInventario.split('|');
       const q = parseInt(e.target.value) || 0;
       State.impostaQtaInventario(tipo, cod, q);
-      renderMain();
+      // Aggiorna solo il totale a video, senza ridisegnare tutta la tabella:
+      // un renderMain() completo ad ogni inserimento faceva perdere la posizione
+      // di scorrimento, dando l'impressione di "tornare indietro" nell'elenco.
+      const totaleEl = document.getElementById('totaleInventario' + tipo);
+      if (totaleEl) {
+        const map = State.inventario[tipo];
+        let tot = 0;
+        for (const c of Object.keys(map)) tot += (map[c] || 0);
+        totaleEl.textContent = tot;
+      }
+      salvaStato();
     });
   });
 }
