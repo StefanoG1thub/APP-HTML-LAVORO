@@ -114,7 +114,7 @@ select, input[type=text], input[type=number]{
 table{width:100%; border-collapse:collapse; font-size:0.86rem;}
 thead th{
   background:var(--pistacchio-dark); color:#fff; padding:9px 8px; text-align:center;
-  font-weight:600; position:sticky; top:0; white-space:nowrap;
+  font-weight:600; white-space:nowrap;
 }
 thead th.rowlabel{text-align:left; position:sticky; left:0; z-index:2;}
 tbody td{padding:7px 8px; text-align:center; border-bottom:1px solid var(--linea);}
@@ -130,7 +130,11 @@ tbody tr.cat-header td{
   background:var(--pistacchio); color:#fff; font-weight:700; text-align:left;
   position:static;
 }
-.tablewrap{overflow-x:auto; border-radius:10px; border:1px solid var(--linea); max-height:70vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+/* Niente scroll verticale annidato: su iOS un contenitore con overflow-y interno
+   dentro la pagina scorrevole si blocca ai bordi (bug noto di Safari), da qui i
+   ripetuti "aggiorna pagina" per proseguire. La tabella ora scorre con la pagina
+   intera; resta lo scorrimento orizzontale per le tabelle larghe. */
+.tablewrap{overflow-x:auto; border-radius:10px; border:1px solid var(--linea);}
 th.tot{background:var(--pistacchio-dark); color:#fff; font-weight:800;}
 td.tot{font-weight:800; color:var(--amarena-dark); border-left:2px solid var(--linea);}
 td.qty-cell{font-weight:600; color:var(--pistacchio-dark);}
@@ -195,7 +199,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 24</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 25</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
