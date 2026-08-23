@@ -195,7 +195,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 23</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 24</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -207,6 +207,20 @@ td.qty-zero{color:#c4bdaa;}
 <main id="mainContent"></main>
 
 <div id="modalRoot"></div>
+<div id="tastierinoGestione" style="position:fixed; left:0; right:0; bottom:0; background:#2c2c2e; display:none; grid-template-columns: repeat(3, 1fr); gap:1px; padding:1px; z-index:999; box-shadow:0 -2px 10px rgba(0,0,0,0.3);">
+  <button onclick="tkGestioneDigit(7)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">7</button>
+  <button onclick="tkGestioneDigit(8)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">8</button>
+  <button onclick="tkGestioneDigit(9)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">9</button>
+  <button onclick="tkGestioneDigit(4)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">4</button>
+  <button onclick="tkGestioneDigit(5)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">5</button>
+  <button onclick="tkGestioneDigit(6)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">6</button>
+  <button onclick="tkGestioneDigit(1)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">1</button>
+  <button onclick="tkGestioneDigit(2)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">2</button>
+  <button onclick="tkGestioneDigit(3)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">3</button>
+  <button onclick="tkGestioneCancella()" style="background:#3a3a3c; color:#fff; border:none; font-size:18px; font-weight:500; padding:18px 0; cursor:pointer;">⌫</button>
+  <button onclick="tkGestioneDigit(0)" style="background:#48484a; color:#fff; border:none; font-size:22px; font-weight:500; padding:18px 0; cursor:pointer;">0</button>
+  <button onclick="tkGestioneAvanti()" style="background:#0d9488; color:#fff; border:none; font-size:15px; font-weight:500; padding:18px 0; cursor:pointer;">avanti →</button>
+</div>
 <div id="toastRoot"></div>
 
 <script>
@@ -708,6 +722,83 @@ function elaboraTestoIncollato(testo){
 // ===== Stato applicazione =====
 
 const GIORNI_NOMI = ["Domenica","Lunedì","Martedì","Mercoledì","Giovedì","Venerdì","Sabato"];
+
+// Tastierino numerico personalizzato per Residuo/Carico Reintegro (bypassa la tastiera
+// di sistema — utile su iPad quando la Apple Pencil è stata usata e la tastiera virtuale
+// non ricompare più al tocco). Spento di default: interruttore manuale nella scheda.
+let usaTastierinoGestione = false;
+let campoAttivoGestione = null; // {tipo, cod}
+
+function toggleTastierinoGestione() {
+  usaTastierinoGestione = !usaTastierinoGestione;
+  campoAttivoGestione = null;
+  document.getElementById('tastierinoGestione').style.display = 'none';
+  renderMain();
+}
+
+function apriTastierinoGestione(tipo, cod) {
+  campoAttivoGestione = {tipo, cod};
+  document.getElementById('tastierinoGestione').style.display = 'grid';
+  const el = document.getElementById('qi_' + tipo + '_' + cod);
+  if (el) el.scrollIntoView({block: 'center', behavior: 'smooth'});
+}
+
+function chiudiTastierinoGestione() {
+  campoAttivoGestione = null;
+  document.getElementById('tastierinoGestione').style.display = 'none';
+}
+
+function aggiornaTotaleInventarioGestione(tipo) {
+  const totaleEl = document.getElementById('totaleInventario' + tipo);
+  if (totaleEl) {
+    const map = State.inventario[tipo];
+    let tot = 0;
+    for (const c of Object.keys(map)) tot += (map[c] || 0);
+    totaleEl.textContent = tot;
+  }
+}
+
+function tkGestioneDigit(d) {
+  if (!campoAttivoGestione) return;
+  const {tipo, cod} = campoAttivoGestione;
+  const el = document.getElementById('qi_' + tipo + '_' + cod);
+  const attuale = (el.dataset.digitando === '1') ? el.value : '';
+  const nuovo = (attuale === '0' ? '' : attuale) + d;
+  el.value = nuovo;
+  el.dataset.digitando = '1';
+  const q = parseInt(nuovo, 10) || 0;
+  State.impostaQtaInventario(tipo, cod, q);
+  aggiornaTotaleInventarioGestione(tipo);
+  salvaStato();
+}
+
+function tkGestioneCancella() {
+  if (!campoAttivoGestione) return;
+  const {tipo, cod} = campoAttivoGestione;
+  const el = document.getElementById('qi_' + tipo + '_' + cod);
+  const nuovo = el.value.toString().slice(0, -1);
+  el.value = nuovo || '0';
+  el.dataset.digitando = '1';
+  const q = parseInt(el.value, 10) || 0;
+  State.impostaQtaInventario(tipo, cod, q);
+  aggiornaTotaleInventarioGestione(tipo);
+  salvaStato();
+}
+
+function tkGestioneAvanti() {
+  if (!campoAttivoGestione) return;
+  const {tipo, cod} = campoAttivoGestione;
+  const el = document.getElementById('qi_' + tipo + '_' + cod);
+  if (el) el.dataset.digitando = '0';
+  const ordine = tipo === 'residuo' ? codiciOrdinatiUfficiale() : codiciOrdinatiPerCodiceDDT();
+  const idx = ordine.indexOf(cod);
+  const successivo = ordine[idx + 1];
+  if (successivo) {
+    apriTastierinoGestione(tipo, successivo);
+  } else {
+    chiudiTastierinoGestione();
+  }
+}
 
 const State = {
   data: new Date(),
@@ -1350,6 +1441,7 @@ function renderInventarioView(){
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="residuo">📋 Incolla messaggio (riserva)</button>
         <button class="btn btn-secondary" id="btnStampaGiacenze">🖨️ Stampa PDF Giacenze</button>
+        <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuo">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th></tr></thead><tbody>`;
     let catCorrente = null;
@@ -1360,7 +1452,10 @@ function renderInventarioView(){
         html += `<tr class="cat-header"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
       }
       const q = map[cod] || 0;
-      html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="number" min="0" value="${q||''}" placeholder="0" data-qta-inventario="residuo|${cod}" style="width:64px; text-align:center;"></td></tr>`;
+      const attrsInput = usaTastierinoGestione
+        ? `readonly onfocus="apriTastierinoGestione('residuo','${cod}')"`
+        : `data-qta-inventario="residuo|${cod}"`;
+      html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="${usaTastierinoGestione?'text':'number'}" min="0" value="${q||''}" placeholder="0" id="qi_residuo_${cod}" ${attrsInput} style="width:64px; text-align:center;"></td></tr>`;
     }
     html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot" id="totaleInventarioresiduo">${totColli}</td></tr>`;
     html += `</tbody></table></div></div>`;
@@ -1374,11 +1469,15 @@ function renderInventarioView(){
       <div class="note-box">Merce caricata dal magazzino, in <b>colli</b> — stessa unità con cui inserisci gli ordini clienti. Ordine per codice crescente, come sul DDT cartaceo (il 4193 è in fondo perché stagionale).</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="reintegro">📋 Incolla messaggio (riserva)</button>
+        <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="reintegro">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
       </div>
-      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Pezzi</th></tr></thead><tbody>`;
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th></tr></thead><tbody>`;
     for (const cod of codiciDDT) {
       const q = map[cod] || 0;
-      html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="number" min="0" value="${q||''}" placeholder="0" data-qta-inventario="reintegro|${cod}" style="width:64px; text-align:center;"></td></tr>`;
+      const attrsInput = usaTastierinoGestione
+        ? `readonly onfocus="apriTastierinoGestione('reintegro','${cod}')"`
+        : `data-qta-inventario="reintegro|${cod}"`;
+      html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="${usaTastierinoGestione?'text':'number'}" min="0" value="${q||''}" placeholder="0" id="qi_reintegro_${cod}" ${attrsInput} style="width:64px; text-align:center;"></td></tr>`;
     }
     html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot" id="totaleInventarioreintegro">${tot}</td></tr>`;
     html += `</tbody></table></div></div>`;
@@ -1535,6 +1634,9 @@ function attachMainEvents(){
 
   const btnStampaGiacenze = document.getElementById('btnStampaGiacenze');
   if (btnStampaGiacenze) btnStampaGiacenze.addEventListener('click', stampaPdfGiacenze);
+
+  const btnToggleTk = document.getElementById('btnToggleTastierinoGestione');
+  if (btnToggleTk) btnToggleTk.addEventListener('click', toggleTastierinoGestione);
 
   document.querySelectorAll('[data-qta-inventario]').forEach(inp => {
     inp.addEventListener('change', (e) => {
