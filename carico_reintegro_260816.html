@@ -88,7 +88,7 @@
 <header>
   <div class="header-titoli">
     <h1>📦 Carico Reintegro</h1>
-    <p>Ordine per codice — come da stampa DDT Lattebusche · <span style="color:#9ca3af;">build 8</span></p>
+    <p>Ordine per codice — come da stampa DDT Lattebusche · <span style="color:#9ca3af;">build 9</span></p>
   </div>
   <div style="display:flex; align-items:center; gap:8px;">
     <button class="btn-toggle-tk" id="btnToggleTastierino" onclick="toggleTastierino()">🔢 Tastierino iPad</button>
@@ -124,8 +124,8 @@
 // col documento cartaceo. Il 4193 (Crema Caffè) è messo in fondo perché è un
 // prodotto stagionale (3-4 mesi l'anno): fuori catalogo per il resto dell'anno
 // non deve "interrompere" il flusso sistematico codice-per-codice.
-// Le quantità inserite sono già i pezzi definitivi (come da stampa DDT) — nessuna
-// conversione fardelli->pezzi qui, a differenza di Residuo Autocarro.
+// Le quantità inserite sono in colli/fardelli — la stessa unità con cui si inseriscono
+// gli ordini clienti — nessuna conversione fardelli->pezzi in nessun punto della catena.
 var prodotti = [
   {cod:4001, nome:"Panna Cacao"},
   {cod:4002, nome:"Fragola Limone"},
@@ -350,7 +350,7 @@ function invia() {
 
   var note = document.getElementById("annotazioni").value.trim();
 
-  var testo = "🧊 *Ordine Gelato Lattebusche*\n\n" + righe.join("\n") + "\n\n*Totale colli: " + tot + "*";
+  var testo = "📦 *Carico Reintegro*\n\n" + righe.join("\n") + "\n\n*Totale colli: " + tot + "*";
   if (note) {
     testo += "\n\n📝 *Annotazioni:*\n" + note;
   }
