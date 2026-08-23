@@ -195,7 +195,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 21</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 22</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -344,12 +344,6 @@ function codiciOrdinatiConCoop(){
 function codiciOrdinatiUfficiale(){
   return codiciOrdinatiConCoop().filter(c => !CATALOGO[c].note);
 }
-
-// Fattore colli->pezzi per il Residuo Autocarro (si inserisce il numero di fardelli
-// contati fisicamente in camino, il sistema calcola i pezzi equivalenti per i confronti
-// con gli ordini clienti, che sono sempre in pezzi). 6 pezzi/fardello per tutte le linee
-// tranne le Vasche 1000gr (4) e la Crema Caffè/4193 (venduta a fardello, resta 1).
-const FATTORE_COLLI = {"500":6, "1000":4, "coni":6, "biscotti":6, "mini":6, "stecchi":6, "sorbetti":6, "crema_caffe":1};
 
 // Ordine per codice crescente come da stampa ufficiale del DDT di reintegro Lattebusche,
 // usato solo per Carico Reintegro (lì si trascrive direttamente dal DDT cartaceo, pagina
@@ -503,6 +497,7 @@ function rilevaFormato(testo) {
   if (/COOP ALLEANZA/i.test(testo)) return 'coop_alleanza';
   if (/Ordine a Fornitore - Sarcedo/i.test(testo) || /coopmarostica/i.test(testo)) return 'sarcedo';
   if (/Ordine Gelato (Lattebusche|Conad)/i.test(testo) && /Totale colli/i.test(testo)) return 'bb_app';
+  if (/Residuo Autocarro|Carico Reintegro/i.test(testo) && /Totale colli/i.test(testo)) return 'bb_app';
   if (/RDAVENETA/i.test(testo) || /RDA VENETA/i.test(testo)) return 'rda_veneta';
   return 'sconosciuto';
 }
@@ -725,9 +720,9 @@ const State = {
   _uid: 1,
   nuovoId(){ return 'c' + (this._uid++); },
 
-  // Inventario: giacenza residua a bordo autocarro (inserita in COLLI/fardelli, come li
-  // conti fisicamente intorno al camion) e carico reintegro dal magazzino (inserito in
-  // PEZZI/unità, come riportato dalla stampa DDT Lattebusche). Entrambe mappe {codice: quantità}.
+  // Inventario: giacenza residua a bordo autocarro e carico reintegro dal magazzino,
+  // entrambi in COLLI/fardelli — stessa unità con cui inserisci gli ordini clienti,
+  // nessuna conversione in nessun punto della catena. Mappe {codice: quantità}.
   inventario: { residuo: {}, reintegro: {} },
   inventarioSotto: 'residuo', // residuo | reintegro | totali
 
@@ -741,23 +736,15 @@ const State = {
     else delete map[cod];
   },
 
-  // Converte il Residuo Autocarro da colli inseriti a pezzi equivalenti, per i confronti
-  // con gli ordini clienti (sempre in pezzi). Il Carico Reintegro è già in pezzi, nessuna conversione.
-  residuoPezzi(cod){
-    const colli = this.inventario.residuo[cod] || 0;
-    const fattore = FATTORE_COLLI[CATALOGO[cod].cat] || 6;
-    return colli * fattore;
-  },
-
-  // Disponibilità libera per referenza = residuo (convertito in pezzi) + reintegro (già in
-  // pezzi) - quanto già impegnato negli ordini clienti caricati oggi (Lando + Generici + Coop).
-  // Calcolata solo sui codici ufficiali (residuo/reintegro si registrano sempre con codice
-  // standard, mai coi codici interni Coop).
+  // Disponibilità libera per referenza = residuo + reintegro - quanto già impegnato
+  // negli ordini clienti caricati oggi (Lando + Generici + Coop). Tutto in colli,
+  // nessuna conversione. Calcolata solo sui codici ufficiali (residuo/reintegro si
+  // registrano sempre con codice standard, mai coi codici interni Coop).
   disponibilitaPerReferenza(){
     const totRef = this.totalePerReferenza();
     const disp = {};
     for (const cod of codiciOrdinatiUfficiale()) {
-      const residuo = this.residuoPezzi(cod);
+      const residuo = this.inventario.residuo[cod] || 0;
       const reintegro = this.inventario.reintegro[cod] || 0;
       const impegnato = totRef[String(cod)] || 0;
       disp[cod] = residuo + reintegro - impegnato;
@@ -1355,28 +1342,27 @@ function renderInventarioView(){
 
   if (sotto === 'residuo') {
     const map = State.inventario.residuo;
-    let totColli = 0, totPezzi = 0;
-    for (const cod of codiciOrdinatiUfficiale()) { totColli += (map[cod]||0); totPezzi += State.residuoPezzi(cod); }
+    let totColli = 0;
+    for (const cod of codiciOrdinatiUfficiale()) totColli += (map[cod]||0);
 
     html += `<div class="card"><h2>Residuo Autocarro</h2>
-      <div class="note-box">Giacenza fisica a bordo autocarro (a fine giro o inizio giornata). Inserisci i <b>fardelli/colli</b> contati — il sistema calcola da solo i pezzi equivalenti per il confronto con gli ordini clienti.</div>
+      <div class="note-box">Giacenza fisica a bordo autocarro (a fine giro o inizio giornata), in <b>colli</b> — stessa unità con cui inserisci gli ordini clienti.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="residuo">📋 Incolla messaggio (riserva)</button>
         <button class="btn btn-secondary" id="btnStampaGiacenze">🖨️ Stampa PDF Giacenze</button>
       </div>
-      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th><th class="tot">≈ Pezzi</th></tr></thead><tbody>`;
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th></tr></thead><tbody>`;
     let catCorrente = null;
     for (const cod of codiciOrdinatiUfficiale()) {
       const prod = CATALOGO[cod];
       if (prod.cat !== catCorrente) {
         catCorrente = prod.cat;
-        html += `<tr class="cat-header"><td colspan="4">${CATEGORIE[catCorrente]}</td></tr>`;
+        html += `<tr class="cat-header"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
       }
       const q = map[cod] || 0;
-      const pezzi = State.residuoPezzi(cod);
-      html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="number" min="0" value="${q||''}" placeholder="0" data-qta-inventario="residuo|${cod}" style="width:64px; text-align:center;"></td><td class="tot" style="color:#7a8a99;">${pezzi||'·'}</td></tr>`;
+      html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="number" min="0" value="${q||''}" placeholder="0" data-qta-inventario="residuo|${cod}" style="width:64px; text-align:center;"></td></tr>`;
     }
-    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot" id="totaleInventarioresiduo">${totColli}</td><td class="tot" style="color:#7a8a99;">${totPezzi}</td></tr>`;
+    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot" id="totaleInventarioresiduo">${totColli}</td></tr>`;
     html += `</tbody></table></div></div>`;
   } else if (sotto === 'reintegro') {
     const map = State.inventario.reintegro;
@@ -1385,7 +1371,7 @@ function renderInventarioView(){
     for (const cod of codiciDDT) tot += (map[cod]||0);
 
     html += `<div class="card"><h2>Carico Reintegro</h2>
-      <div class="note-box">Merce caricata dal magazzino, in <b>pezzi/unità</b> — esattamente come riportato sulla stampa DDT di reintegro Lattebusche. Ordine per codice crescente, come sul DDT cartaceo (il 4193 è in fondo perché stagionale).</div>
+      <div class="note-box">Merce caricata dal magazzino, in <b>colli</b> — stessa unità con cui inserisci gli ordini clienti. Ordine per codice crescente, come sul DDT cartaceo (il 4193 è in fondo perché stagionale).</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="reintegro">📋 Incolla messaggio (riserva)</button>
       </div>
@@ -1403,7 +1389,7 @@ function renderInventarioView(){
       ? `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numRotture} referenz${numRotture===1?'a':'e'} in rottura di stock</div>`
       : `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;">✓ Nessuna rottura di stock al momento</div>`;
     html += `<div class="card"><h2>Totali &amp; Disponibilità</h2>
-      <div class="note-box">Residuo autocarro (convertito in pezzi) + carico reintegro − quanto già impegnato negli ordini clienti caricati oggi. Tutti i valori qui sotto sono in pezzi. Un valore negativo o a zero segnala una possibile rottura di stock su quella referenza.</div>
+      <div class="note-box">Residuo autocarro + carico reintegro − quanto già impegnato negli ordini clienti caricati oggi. Tutti i valori qui sotto sono in colli. Un valore negativo o a zero segnala una possibile rottura di stock su quella referenza.</div>
       ${bannerRotture}
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Residuo</th><th>Reintegro</th><th>Impegnato</th><th class="tot">Disponibile</th></tr></thead><tbody>`;
     let catCorrente = null;
@@ -1413,7 +1399,7 @@ function renderInventarioView(){
         catCorrente = prod.cat;
         html += `<tr class="cat-header"><td colspan="5">${CATEGORIE[catCorrente]}</td></tr>`;
       }
-      const residuo = State.residuoPezzi(cod);
+      const residuo = State.inventario.residuo[cod] || 0;
       const reintegro = State.inventario.reintegro[cod] || 0;
       const impegnato = State.totalePerReferenza()[String(cod)] || 0;
       const d = disp[cod] || 0;
@@ -1837,16 +1823,10 @@ function apriIncollaInventario(tipo){
       return;
     }
     const righeMap = {};
-    if (tipo === 'residuo') {
-      // L'app di riserva residuo_autocarro invia i PEZZI (già convertiti); qui invece
-      // si tiene lo stato in COLLI, quindi si riconverte dividendo per il fattore.
-      risultato.righe.forEach(r => {
-        const fattore = FATTORE_COLLI[CATALOGO[r.codice] ? CATALOGO[r.codice].cat : null] || 6;
-        righeMap[r.codice] = Math.round(r.qta / fattore);
-      });
-    } else {
-      risultato.righe.forEach(r => { righeMap[r.codice] = r.qta; });
-    }
+    // Entrambe le app di riserva (residuo_autocarro, carico_reintegro) inviano ormai
+    // colli/fardelli senza conversioni, come l'inserimento diretto qui — nessuna
+    // riconversione necessaria.
+    risultato.righe.forEach(r => { righeMap[r.codice] = r.qta; });
     State.impostaInventario(tipo, righeMap);
     chiudiModal();
     renderMain();
