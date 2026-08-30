@@ -204,7 +204,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 32</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 33</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -1607,8 +1607,8 @@ function renderInventarioView(){
         classeDiff = 'style="color:#1e7e34; font-weight:800;"';
       } else if (diff < 0) {
         // Giacenza reale sull'autocarro inferiore al DDT: probabile rottura di stock
-        stileRigaDiff = ' style="background:#ffe600;"';
-        stileLabelDiff = ' style="background:#ffe600 !important;"';
+        stileRigaDiff = ' style="background:#ffe600; color:#c0392b; font-weight:700;"';
+        stileLabelDiff = ' style="background:#ffe600 !important; color:#c0392b !important; font-weight:700;"';
         bollino = '🔴 ';
         classeDiff = 'style="color:#c0392b; font-weight:800;"';
       }
@@ -2081,7 +2081,7 @@ function stampaPdfControlloGiacenze(){
       td.q{text-align:right; font-weight:700;}
       td.diffneg{color:#c0392b;}
       td.diffpos{color:#1e7e34;}
-      tr.rigarottura{background:#fff8d6;}
+      tr.rigarottura{background:#fff8d6; color:#c0392b; font-weight:700;}
       tr.rigaeccesso{background:#e3f7e6;}
       tr.cat td{background:#29ABE2; color:#fff; font-weight:700; text-transform:uppercase; font-size:11px;}
       .tot{margin-top:14px; text-align:right; font-weight:800; font-size:15px;}
