@@ -204,7 +204,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 30</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 31</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -1583,6 +1583,7 @@ function renderInventarioView(){
     // --- Tabella 3: Differenze ---
     let righeDiff = '';
     catCorrente = null;
+    let numRottura = 0, numEccesso = 0;
     for (const cod of codiciOrdinatiUfficiale()) {
       const a = mapAutocarro[cod] || 0;
       const b = mapDDT[cod] || 0;
@@ -1594,18 +1595,39 @@ function renderInventarioView(){
         righeDiff += `<tr class="cat-header"><td colspan="4">${CATEGORIE[catCorrente]}</td></tr>`;
       }
       if (diff !== 0) numDiff++;
+      if (diff > 0) numEccesso++;
+      if (diff < 0) numRottura++;
       totDiff += diff;
-      const stileRigaDiff = diff !== 0 ? ' style="background:#ffe600;"' : '';
-      const stileLabelDiff = diff !== 0 ? ' style="background:#ffe600 !important;"' : '';
-      const bollino = diff !== 0 ? '🔴 ' : '';
-      const classeDiff = diff !== 0 ? 'style="color:#c0392b; font-weight:800;"' : 'style="color:#2e7d32;"';
+      let stileRigaDiff = '', stileLabelDiff = '', bollino = '', classeDiff = 'style="color:#2e7d32;"';
+      if (diff > 0) {
+        // Giacenza reale sull'autocarro superiore al DDT: eccesso, nessuna rottura di stock, solo da sistemare a inventario
+        stileRigaDiff = ' style="background:#dcf5df;"';
+        stileLabelDiff = ' style="background:#dcf5df !important;"';
+        bollino = '🟢 ';
+        classeDiff = 'style="color:#1e7e34; font-weight:800;"';
+      } else if (diff < 0) {
+        // Giacenza reale sull'autocarro inferiore al DDT: probabile rottura di stock
+        stileRigaDiff = ' style="background:#ffe600;"';
+        stileLabelDiff = ' style="background:#ffe600 !important;"';
+        bollino = '🔴 ';
+        classeDiff = 'style="color:#c0392b; font-weight:800;"';
+      }
       righeDiff += `<tr${stileRigaDiff}><td class="rowlabel"${stileLabelDiff}>${bollino}${nomeProdottoTag(cod)}</td><td>${a||'·'}</td><td>${b||'·'}</td><td class="tot" ${classeDiff}>${diff>0?'+':''}${diff}</td></tr>`;
     }
-    const bannerDiff = numDiff > 0
-      ? `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numDiff} referenz${numDiff===1?'a con differenza':'e con differenze'} tra autocarro e DDT</div>`
-      : `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;">✓ Nessuna differenza rilevata</div>`;
+    let bannerDiff;
+    if (numRottura === 0 && numEccesso === 0) {
+      bannerDiff = `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;">✓ Nessuna differenza rilevata</div>`;
+    } else {
+      bannerDiff = '';
+      if (numRottura > 0) {
+        bannerDiff += `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numRottura} referenz${numRottura===1?'a':'e'} con probabile rottura di stock (autocarro inferiore al DDT)</div>`;
+      }
+      if (numEccesso > 0) {
+        bannerDiff += `<div class="note-box" style="border-color:#1e7e34; background:#eaf6ea; color:#1e7e34; font-weight:700; margin-top:8px;">🟢 ${numEccesso} referenz${numEccesso===1?'a':'e'} con giacenza autocarro in eccesso (nessuna rottura di stock, da sistemare con l'inventario)</div>`;
+      }
+    }
     html += `<div class="card"><h2>Differenze</h2>
-      <div class="note-box">Giacenze DDT − Giacenze Autocarro per referenza. Un valore diverso da zero segnala un possibile scarico errato (referenza scambiata) da verificare e, se possibile, correggere subito.</div>
+      <div class="note-box">Giacenze Autocarro − Giacenze DDT per referenza. 🔴 rosso = giacenza reale inferiore al DDT, possibile rottura di stock. 🟢 verde = giacenza reale in eccesso, nessuna rottura di stock, da sistemare solo con l'inventario di fine mese.</div>
       ${bannerDiff}
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-secondary" id="btnStampaControlloGiacenze">🖨️ Stampa PDF Controllo Giacenze</button>
@@ -2034,8 +2056,10 @@ function stampaPdfControlloGiacenze(){
     }
     const diff = d - a;
     totA += a; totD += d; totDiff += diff;
-    const classeDiff = diff !== 0 ? ' class="diff"' : '';
-    righe += `<tr${diff!==0?' class="rigadiff"':''}><td>${prod.nome}</td><td>${cod}</td><td class="q">${a||'·'}</td><td class="q">${d||'·'}</td><td class="q"${classeDiff}>${diff>0?'+':''}${diff}</td></tr>`;
+    const classeRiga = diff > 0 ? ' class="rigaeccesso"' : (diff < 0 ? ' class="rigarottura"' : '');
+    const classeDiff = diff > 0 ? ' class="diffpos"' : (diff < 0 ? ' class="diffneg"' : '');
+    const bollino = diff > 0 ? '🟢 ' : (diff < 0 ? '🔴 ' : '');
+    righe += `<tr${classeRiga}><td>${bollino}${prod.nome}</td><td>${cod}</td><td class="q">${a||'·'}</td><td class="q">${d||'·'}</td><td class="q"${classeDiff}>${diff>0?'+':''}${diff}</td></tr>`;
   }
   if (!haRighe) { mostraToast('⚠️ Nessun dato registrato da stampare'); return; }
 
@@ -2050,8 +2074,10 @@ function stampaPdfControlloGiacenze(){
       td,th{padding:6px 8px; border-bottom:1px solid #e5e7eb; text-align:left;}
       th{background:#f0f4f8;}
       td.q{text-align:right; font-weight:700;}
-      td.diff{color:#c0392b;}
-      tr.rigadiff{background:#fff8d6;}
+      td.diffneg{color:#c0392b;}
+      td.diffpos{color:#1e7e34;}
+      tr.rigarottura{background:#fff8d6;}
+      tr.rigaeccesso{background:#e3f7e6;}
       tr.cat td{background:#29ABE2; color:#fff; font-weight:700; text-transform:uppercase; font-size:11px;}
       .tot{margin-top:14px; text-align:right; font-weight:800; font-size:15px;}
       @media print { body{padding:0;} }
