@@ -204,7 +204,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 29</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 30</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -1587,7 +1587,7 @@ function renderInventarioView(){
       const a = mapAutocarro[cod] || 0;
       const b = mapDDT[cod] || 0;
       if (a === 0 && b === 0) continue;
-      const diff = a - b;
+      const diff = b - a;
       const prod = CATALOGO[cod];
       if (prod.cat !== catCorrente) {
         catCorrente = prod.cat;
@@ -2032,7 +2032,7 @@ function stampaPdfControlloGiacenze(){
       catCorrente = prod.cat;
       righe += `<tr class="cat"><td colspan="5">${CATEGORIE[catCorrente]}</td></tr>`;
     }
-    const diff = a - d;
+    const diff = d - a;
     totA += a; totD += d; totDiff += diff;
     const classeDiff = diff !== 0 ? ' class="diff"' : '';
     righe += `<tr${diff!==0?' class="rigadiff"':''}><td>${prod.nome}</td><td>${cod}</td><td class="q">${a||'·'}</td><td class="q">${d||'·'}</td><td class="q"${classeDiff}>${diff>0?'+':''}${diff}</td></tr>`;
