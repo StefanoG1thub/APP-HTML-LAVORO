@@ -204,7 +204,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 27</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 28</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -799,7 +799,7 @@ function tkGestioneAvanti() {
   const {tipo, cod} = campoAttivoGestione;
   const el = document.getElementById('qi_' + tipo + '_' + cod);
   if (el) el.dataset.digitando = '0';
-  const ordine = tipo === 'residuo' ? codiciOrdinatiUfficiale() : codiciOrdinatiPerCodiceDDT();
+  const ordine = (tipo === 'residuo' || tipo === 'residuoDDT') ? codiciOrdinatiUfficiale() : codiciOrdinatiPerCodiceDDT();
   const idx = ordine.indexOf(cod);
   const successivo = ordine[idx + 1];
   if (successivo) {
@@ -823,8 +823,8 @@ const State = {
   // Inventario: giacenza residua a bordo autocarro e carico reintegro dal magazzino,
   // entrambi in COLLI/fardelli — stessa unità con cui inserisci gli ordini clienti,
   // nessuna conversione in nessun punto della catena. Mappe {codice: quantità}.
-  inventario: { residuo: {}, reintegro: {} },
-  inventarioSotto: 'residuo', // residuo | reintegro | totali
+  inventario: { residuo: {}, reintegro: {}, residuoDDT: {} },
+  inventarioSotto: 'residuo', // residuo | reintegro | totali | controllo
 
   impostaInventario(tipo, righeMap){
     this.inventario[tipo] = righeMap;
@@ -1003,7 +1003,7 @@ const State = {
 
   reset(){
     this.clienti = {lando: [], generici: [], coop: []};
-    this.inventario = {residuo: {}, reintegro: {}};
+    this.inventario = {residuo: {}, reintegro: {}, residuoDDT: {}};
     // Nota: non richiamiamo più inizializzaGiorno() qui. Prima lo facevamo, ma questo
     // ripopolava subito i punti vendita Lando previsti per il giorno, dando l'impressione
     // che "Azzera giornata" non svuotasse la sottocategoria "Gestione colonne". Ora l'azzeramento
@@ -1090,7 +1090,8 @@ function caricaStato(){
       return false;
     }
     State.clienti = payload.clienti || {lando: [], generici: [], coop: []};
-    State.inventario = payload.inventario || {residuo: {}, reintegro: {}};
+    State.inventario = payload.inventario || {residuo: {}, reintegro: {}, residuoDDT: {}};
+    if (!State.inventario.residuoDDT) State.inventario.residuoDDT = {};
     State.inventarioSotto = payload.inventarioSotto || 'residuo';
     State._uid = payload._uid || 1;
     State.gruppoAttivo = payload.gruppoAttivo || 'lando';
@@ -1446,6 +1447,7 @@ function renderInventarioView(){
     <button data-subtab="residuo" class="${sotto==='residuo'?'active':''}">🚛 Residuo Autocarro</button>
     <button data-subtab="reintegro" class="${sotto==='reintegro'?'active':''}">📦 Carico Reintegro</button>
     <button data-subtab="totali" class="${sotto==='totali'?'active':''}">📊 Totali &amp; Disponibilità</button>
+    <button data-subtab="controllo" class="${sotto==='controllo'?'active':''}">🔍 Controllo Giacenze</button>
   </div>`;
 
   if (sotto === 'residuo') {
@@ -1528,6 +1530,91 @@ function renderInventarioView(){
       html += `<tr${stileRiga}><td class="rowlabel"${stileLabel}>${bollino}${nomeProdottoTag(cod)}</td><td>${residuo||'·'}</td><td>${reintegro||'·'}</td><td>${impegnato||'·'}</td><td class="tot" ${classeDisp}>${d}</td></tr>`;
     }
     html += `</tbody></table></div></div>`;
+  } else if (sotto === 'controllo') {
+    const mapAutocarro = State.inventario.residuo;
+    const mapDDT = State.inventario.residuoDDT;
+    let totAutocarro = 0, totDDT = 0, totDiff = 0, numDiff = 0;
+    for (const cod of codiciOrdinatiUfficiale()) {
+      totAutocarro += (mapAutocarro[cod]||0);
+      totDDT += (mapDDT[cod]||0);
+    }
+
+    // --- Tabella 1: Residuo Autocarro (specchio automatico, sola lettura) ---
+    html += `<div class="card"><h2>Residuo Autocarro</h2>
+      <div class="note-box">Specchio automatico della giacenza inserita nella scheda "🚛 Residuo Autocarro" — non editabile qui, si aggiorna da sola.</div>
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th></tr></thead><tbody>`;
+    let catCorrente = null;
+    for (const cod of codiciOrdinatiUfficiale()) {
+      const q = mapAutocarro[cod] || 0;
+      if (q === 0) continue;
+      const prod = CATALOGO[cod];
+      if (prod.cat !== catCorrente) {
+        catCorrente = prod.cat;
+        html += `<tr class="cat-header"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
+      }
+      html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot">${q}</td></tr>`;
+    }
+    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot">${totAutocarro}</td></tr>`;
+    html += `</tbody></table></div></div>`;
+
+    // --- Tabella 2: Residuo DDT (inserimento manuale) ---
+    html += `<div class="card"><h2>Residuo DDT</h2>
+      <div class="note-box">Giacenza risultante dal DDT/software TVCE, in <b>colli</b> — la ricopi a mano dal documento cartaceo.</div>
+      <div class="row" style="margin:10px 0; gap:8px;">
+        <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuoDDT">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
+      </div>
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th></tr></thead><tbody>`;
+    catCorrente = null;
+    for (const cod of codiciOrdinatiUfficiale()) {
+      const prod = CATALOGO[cod];
+      if (prod.cat !== catCorrente) {
+        catCorrente = prod.cat;
+        html += `<tr class="cat-header"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
+      }
+      const q = mapDDT[cod] || 0;
+      const attrsInput = usaTastierinoGestione
+        ? `readonly onfocus="apriTastierinoGestione('residuoDDT','${cod}')"`
+        : `data-qta-inventario="residuoDDT|${cod}"`;
+      html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="${usaTastierinoGestione?'text':'number'}" min="0" value="${q||''}" placeholder="0" id="qi_residuoDDT_${cod}" ${attrsInput} style="width:64px; text-align:center;"></td></tr>`;
+    }
+    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot" id="totaleInventarioresiduoDDT">${totDDT}</td></tr>`;
+    html += `</tbody></table></div></div>`;
+
+    // --- Tabella 3: Differenze ---
+    let righeDiff = '';
+    catCorrente = null;
+    for (const cod of codiciOrdinatiUfficiale()) {
+      const a = mapAutocarro[cod] || 0;
+      const b = mapDDT[cod] || 0;
+      if (a === 0 && b === 0) continue;
+      const diff = a - b;
+      const prod = CATALOGO[cod];
+      if (prod.cat !== catCorrente) {
+        catCorrente = prod.cat;
+        righeDiff += `<tr class="cat-header"><td colspan="4">${CATEGORIE[catCorrente]}</td></tr>`;
+      }
+      if (diff !== 0) numDiff++;
+      totDiff += diff;
+      const stileRigaDiff = diff !== 0 ? ' style="background:#ffe600;"' : '';
+      const stileLabelDiff = diff !== 0 ? ' style="background:#ffe600 !important;"' : '';
+      const bollino = diff !== 0 ? '🔴 ' : '';
+      const classeDiff = diff !== 0 ? 'style="color:#c0392b; font-weight:800;"' : 'style="color:#2e7d32;"';
+      righeDiff += `<tr${stileRigaDiff}><td class="rowlabel"${stileLabelDiff}>${bollino}${nomeProdottoTag(cod)}</td><td>${a||'·'}</td><td>${b||'·'}</td><td class="tot" ${classeDiff}>${diff>0?'+':''}${diff}</td></tr>`;
+    }
+    const bannerDiff = numDiff > 0
+      ? `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numDiff} referenz${numDiff===1?'a con differenza':'e con differenze'} tra autocarro e DDT</div>`
+      : `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;">✓ Nessuna differenza rilevata</div>`;
+    html += `<div class="card"><h2>Differenze</h2>
+      <div class="note-box">Autocarro − DDT per referenza. Un valore diverso da zero segnala un possibile scarico errato (referenza scambiata) da verificare e, se possibile, correggere subito.</div>
+      ${bannerDiff}
+      <div class="row" style="margin:10px 0; gap:8px;">
+        <button class="btn btn-secondary" id="btnStampaControlloGiacenze">🖨️ Stampa PDF Controllo Giacenze</button>
+      </div>
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Autocarro</th><th>DDT</th><th class="tot">Differenza</th></tr></thead><tbody>${righeDiff || '<tr><td colspan="4" style="text-align:center; color:var(--grigio); padding:16px;">Nessun dato inserito</td></tr>'}</tbody>`;
+    if (righeDiff) {
+      html += `<tfoot><tr class="tot-riga"><td class="rowlabel">TOTALE</td><td class="tot">${totAutocarro}</td><td class="tot">${totDDT}</td><td class="tot">${totDiff>0?'+':''}${totDiff}</td></tr></tfoot>`;
+    }
+    html += `</table></div></div>`;
   }
 
   return html;
@@ -1651,6 +1738,9 @@ function attachMainEvents(){
 
   const btnStampaGiacenze = document.getElementById('btnStampaGiacenze');
   if (btnStampaGiacenze) btnStampaGiacenze.addEventListener('click', stampaPdfGiacenze);
+
+  const btnStampaControllo = document.getElementById('btnStampaControlloGiacenze');
+  if (btnStampaControllo) btnStampaControllo.addEventListener('click', stampaPdfControlloGiacenze);
 
   const btnToggleTk = document.getElementById('btnToggleTastierinoGestione');
   if (btnToggleTk) btnToggleTk.addEventListener('click', toggleTastierinoGestione);
@@ -1918,6 +2008,58 @@ function stampaPdfGiacenze(){
     <div class="data">${oggi}</div>
     <table><thead><tr><th>Referenza</th><th>Codice</th><th>Quantità</th></tr></thead><tbody>${righe}</tbody></table>
     <div class="tot">Totale: ${totale}</div>
+    </body></html>`);
+  w.document.close();
+  w.onload = () => w.print();
+}
+
+// ---------- STAMPA PDF CONTROLLO GIACENZE (Residuo Autocarro vs Residuo DDT vs Differenze) ----------
+function stampaPdfControlloGiacenze(){
+  const mapAutocarro = State.inventario.residuo;
+  const mapDDT = State.inventario.residuoDDT;
+  const oggi = new Date().toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  let righe = '';
+  let catCorrente = null;
+  let totA = 0, totD = 0, totDiff = 0;
+  let haRighe = false;
+  for (const cod of codiciOrdinatiUfficiale()) {
+    const a = mapAutocarro[cod] || 0;
+    const d = mapDDT[cod] || 0;
+    if (a === 0 && d === 0) continue;
+    haRighe = true;
+    const prod = CATALOGO[cod];
+    if (prod.cat !== catCorrente) {
+      catCorrente = prod.cat;
+      righe += `<tr class="cat"><td colspan="5">${CATEGORIE[catCorrente]}</td></tr>`;
+    }
+    const diff = a - d;
+    totA += a; totD += d; totDiff += diff;
+    const classeDiff = diff !== 0 ? ' class="diff"' : '';
+    righe += `<tr${diff!==0?' class="rigadiff"':''}><td>${prod.nome}</td><td>${cod}</td><td class="q">${a||'·'}</td><td class="q">${d||'·'}</td><td class="q"${classeDiff}>${diff>0?'+':''}${diff}</td></tr>`;
+  }
+  if (!haRighe) { mostraToast('⚠️ Nessun dato registrato da stampare'); return; }
+
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
+    <title>Controllo Giacenze - ${oggi}</title>
+    <style>
+      body{font-family:-apple-system,sans-serif; padding:24px; color:#1a1a2e;}
+      h1{font-size:20px; margin-bottom:2px;}
+      .data{color:#6b7280; font-size:13px; margin-bottom:18px;}
+      table{width:100%; border-collapse:collapse; font-size:13px;}
+      td,th{padding:6px 8px; border-bottom:1px solid #e5e7eb; text-align:left;}
+      th{background:#f0f4f8;}
+      td.q{text-align:right; font-weight:700;}
+      td.diff{color:#c0392b;}
+      tr.rigadiff{background:#fff8d6;}
+      tr.cat td{background:#29ABE2; color:#fff; font-weight:700; text-transform:uppercase; font-size:11px;}
+      .tot{margin-top:14px; text-align:right; font-weight:800; font-size:15px;}
+      @media print { body{padding:0;} }
+    </style></head><body>
+    <h1>🔍 Controllo Giacenze</h1>
+    <div class="data">${oggi}</div>
+    <table><thead><tr><th>Referenza</th><th>Codice</th><th>Autocarro</th><th>DDT</th><th>Differenza</th></tr></thead><tbody>${righe}</tbody></table>
+    <div class="tot">Totale Autocarro: ${totA} — Totale DDT: ${totD} — Differenza: ${totDiff>0?'+':''}${totDiff}</div>
     </body></html>`);
   w.document.close();
   w.onload = () => w.print();
