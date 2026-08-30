@@ -204,7 +204,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 28</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 29</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -1444,7 +1444,7 @@ function renderTotaliView(){
 function renderInventarioView(){
   const sotto = State.inventarioSotto;
   let html = `<div class="tabbar" id="subtabbarInventario" style="margin-bottom:10px;">
-    <button data-subtab="residuo" class="${sotto==='residuo'?'active':''}">🚛 Residuo Autocarro</button>
+    <button data-subtab="residuo" class="${sotto==='residuo'?'active':''}">🚛 Residuo Giacenze DDT</button>
     <button data-subtab="reintegro" class="${sotto==='reintegro'?'active':''}">📦 Carico Reintegro</button>
     <button data-subtab="totali" class="${sotto==='totali'?'active':''}">📊 Totali &amp; Disponibilità</button>
     <button data-subtab="controllo" class="${sotto==='controllo'?'active':''}">🔍 Controllo Giacenze</button>
@@ -1455,7 +1455,7 @@ function renderInventarioView(){
     let totColli = 0;
     for (const cod of codiciOrdinatiUfficiale()) totColli += (map[cod]||0);
 
-    html += `<div class="card"><h2>Residuo Autocarro</h2>
+    html += `<div class="card"><h2>Residuo Giacenze DDT</h2>
       <div class="note-box">Giacenza fisica a bordo autocarro (a fine giro o inizio giornata), in <b>colli</b> — stessa unità con cui inserisci gli ordini clienti.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="residuo">📋 Incolla messaggio (riserva)</button>
@@ -1539,9 +1539,9 @@ function renderInventarioView(){
       totDDT += (mapDDT[cod]||0);
     }
 
-    // --- Tabella 1: Residuo Autocarro (specchio automatico, sola lettura) ---
-    html += `<div class="card"><h2>Residuo Autocarro</h2>
-      <div class="note-box">Specchio automatico della giacenza inserita nella scheda "🚛 Residuo Autocarro" — non editabile qui, si aggiorna da sola.</div>
+    // --- Tabella 1: Residuo Giacenze DDT (specchio automatico, sola lettura) ---
+    html += `<div class="card"><h2>Residuo Giacenze DDT</h2>
+      <div class="note-box">Specchio automatico della giacenza inserita nella scheda "🚛 Residuo Giacenze DDT" — non editabile qui, si aggiorna da sola.</div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th></tr></thead><tbody>`;
     let catCorrente = null;
     for (const cod of codiciOrdinatiUfficiale()) {
@@ -1557,8 +1557,8 @@ function renderInventarioView(){
     html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot">${totAutocarro}</td></tr>`;
     html += `</tbody></table></div></div>`;
 
-    // --- Tabella 2: Residuo DDT (inserimento manuale) ---
-    html += `<div class="card"><h2>Residuo DDT</h2>
+    // --- Tabella 2: Residuo Giacenze Autocarro (inserimento manuale) ---
+    html += `<div class="card"><h2>Residuo Giacenze Autocarro</h2>
       <div class="note-box">Giacenza risultante dal DDT/software TVCE, in <b>colli</b> — la ricopi a mano dal documento cartaceo.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuoDDT">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
@@ -1605,12 +1605,12 @@ function renderInventarioView(){
       ? `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numDiff} referenz${numDiff===1?'a con differenza':'e con differenze'} tra autocarro e DDT</div>`
       : `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;">✓ Nessuna differenza rilevata</div>`;
     html += `<div class="card"><h2>Differenze</h2>
-      <div class="note-box">Autocarro − DDT per referenza. Un valore diverso da zero segnala un possibile scarico errato (referenza scambiata) da verificare e, se possibile, correggere subito.</div>
+      <div class="note-box">Giacenze DDT − Giacenze Autocarro per referenza. Un valore diverso da zero segnala un possibile scarico errato (referenza scambiata) da verificare e, se possibile, correggere subito.</div>
       ${bannerDiff}
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-secondary" id="btnStampaControlloGiacenze">🖨️ Stampa PDF Controllo Giacenze</button>
       </div>
-      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Autocarro</th><th>DDT</th><th class="tot">Differenza</th></tr></thead><tbody>${righeDiff || '<tr><td colspan="4" style="text-align:center; color:var(--grigio); padding:16px;">Nessun dato inserito</td></tr>'}</tbody>`;
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Giacenze DDT</th><th>Giacenze Autocarro</th><th class="tot">Differenza</th></tr></thead><tbody>${righeDiff || '<tr><td colspan="4" style="text-align:center; color:var(--grigio); padding:16px;">Nessun dato inserito</td></tr>'}</tbody>`;
     if (righeDiff) {
       html += `<tfoot><tr class="tot-riga"><td class="rowlabel">TOTALE</td><td class="tot">${totAutocarro}</td><td class="tot">${totDDT}</td><td class="tot">${totDiff>0?'+':''}${totDiff}</td></tr></tfoot>`;
     }
@@ -1991,7 +1991,7 @@ function stampaPdfGiacenze(){
 
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
-    <title>Giacenze Autocarro - ${oggi}</title>
+    <title>Giacenze DDT - ${oggi}</title>
     <style>
       body{font-family:-apple-system,sans-serif; padding:24px; color:#1a1a2e;}
       h1{font-size:20px; margin-bottom:2px;}
@@ -2004,7 +2004,7 @@ function stampaPdfGiacenze(){
       .tot{margin-top:14px; text-align:right; font-weight:800; font-size:15px;}
       @media print { body{padding:0;} }
     </style></head><body>
-    <h1>🚛 Giacenze Autocarro</h1>
+    <h1>🚛 Giacenze DDT</h1>
     <div class="data">${oggi}</div>
     <table><thead><tr><th>Referenza</th><th>Codice</th><th>Quantità</th></tr></thead><tbody>${righe}</tbody></table>
     <div class="tot">Totale: ${totale}</div>
@@ -2058,15 +2058,15 @@ function stampaPdfControlloGiacenze(){
     </style></head><body>
     <h1>🔍 Controllo Giacenze</h1>
     <div class="data">${oggi}</div>
-    <table><thead><tr><th>Referenza</th><th>Codice</th><th>Autocarro</th><th>DDT</th><th>Differenza</th></tr></thead><tbody>${righe}</tbody></table>
-    <div class="tot">Totale Autocarro: ${totA} — Totale DDT: ${totD} — Differenza: ${totDiff>0?'+':''}${totDiff}</div>
+    <table><thead><tr><th>Referenza</th><th>Codice</th><th>Giacenze DDT</th><th>Giacenze Autocarro</th><th>Differenza</th></tr></thead><tbody>${righe}</tbody></table>
+    <div class="tot">Totale Giacenze DDT: ${totA} — Totale Giacenze Autocarro: ${totD} — Differenza: ${totDiff>0?'+':''}${totDiff}</div>
     </body></html>`);
   w.document.close();
   w.onload = () => w.print();
 }
 
 function apriIncollaInventario(tipo){
-  const titolo = tipo === 'residuo' ? 'Residuo Autocarro' : 'Carico Reintegro';
+  const titolo = tipo === 'residuo' ? 'Residuo Giacenze DDT' : 'Carico Reintegro';
   const root = document.getElementById('modalRoot');
   root.innerHTML = `
   <div class="modal-backdrop" id="backdropIncollaInv">
