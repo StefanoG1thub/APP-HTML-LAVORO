@@ -204,7 +204,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 31</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 32</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -2070,9 +2070,14 @@ function stampaPdfControlloGiacenze(){
       body{font-family:-apple-system,sans-serif; padding:24px; color:#1a1a2e;}
       h1{font-size:20px; margin-bottom:2px;}
       .data{color:#6b7280; font-size:13px; margin-bottom:18px;}
-      table{width:100%; border-collapse:collapse; font-size:13px;}
-      td,th{padding:6px 8px; border-bottom:1px solid #e5e7eb; text-align:left;}
+      table{width:100%; border-collapse:collapse; font-size:13px; table-layout:fixed;}
+      td,th{padding:6px 8px; border-bottom:1px solid #e5e7eb; text-align:left; overflow:hidden; text-overflow:ellipsis;}
       th{background:#f0f4f8;}
+      th:nth-child(1), td:nth-child(1){width:34%;}
+      th:nth-child(2), td:nth-child(2){width:14%;}
+      th:nth-child(3), td:nth-child(3){width:17%; text-align:right;}
+      th:nth-child(4), td:nth-child(4){width:19%; text-align:right;}
+      th:nth-child(5), td:nth-child(5){width:16%; text-align:right;}
       td.q{text-align:right; font-weight:700;}
       td.diffneg{color:#c0392b;}
       td.diffpos{color:#1e7e34;}
