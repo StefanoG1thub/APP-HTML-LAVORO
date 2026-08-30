@@ -130,6 +130,11 @@ tbody tr.cat-header td{
   background:var(--pistacchio); color:#fff; font-weight:700; text-align:left;
   position:static;
 }
+tfoot tr.tot-riga td{
+  background:var(--pistacchio-dark); color:#fff; font-weight:800;
+  border-top:2px solid var(--linea);
+}
+tfoot tr.tot-riga td.rowlabel{background:var(--pistacchio-dark); color:#fff;}
 /* Niente scroll verticale annidato: su iOS un contenitore con overflow-y interno
    dentro la pagina scorrevole si blocca ai bordi (bug noto di Safari), da qui i
    ripetuti "aggiorna pagina" per proseguire. La tabella ora scorre con la pagina
@@ -199,7 +204,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 25</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 26</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -1222,10 +1227,10 @@ function renderLandoView(){
 
 // ---------- VISTA GENERICI ----------
 // Clienti che usano l'app testuale BB (formato "Linea... • Prodotto - qta", via Incolla ordine BB)
-const CLIENTI_APP_TESTO_BB = ["BB Camazzole", "BB Lanzè", "BB Grantortino", "Svas Villafranca", "Nuova Futura", "Società Consortile di Dolo", "Caseificio Barbarano"];
+const CLIENTI_APP_TESTO_BB = ["BB Camazzole", "BB Lanzè", "BB Grantortino", "Svas Taggì", "Nuova Futura", "Società Consortile di Dolo", "Caseificio Barbarano"];
 
 // Clienti a inserimento manuale (poche referenze, ordini sporadici, nessun formato PDF/testo riconosciuto)
-const CLIENTI_MANUALI = ["SGR Bezzecca", "SGR Monselice", "Bianchini F.", "Le Corti", "Biosapori Bassano del Grappa", "Biosapori Noventa Padovana", "Ae Noseare", "Monte Altore", "Circolo del Patronato Canossiano"];
+const CLIENTI_MANUALI = ["SGR Bezzecca", "SGR Monselice", "Bianchini F.", "Le Corti", "Biosapori Bassano del Grappa", "Biosapori Noventa Padovana", "Ae Noseare", "Monte Altore", "Circolo del Patronato Canossiano", "Coop Via Vecellio"];
 
 const CLIENTI_GENERICI_NOTI = [...CLIENTI_APP_TESTO_BB, ...CLIENTI_MANUALI];
 
@@ -1238,7 +1243,7 @@ function renderGenericiView(){
     <h2>Ordini Generici — ${fmtDataConsegnaScheda('generici')}</h2>
     <div class="row" style="margin-bottom:10px;">
       <button class="btn btn-primary" id="btnCaricaPdfGenerico">📄 Carica PDF ordine</button>
-      <button class="btn btn-primary" id="btnIncollaTestoBB">📋 Incolla ordine BB</button>
+      <button class="btn btn-primary" id="btnIncollaTestoBB">📋 Incolla ordini da WhatsApp</button>
       <button class="btn btn-secondary" id="btnInserimentoManualeGenerico">✏️ Inserisci manualmente</button>
       <select id="selectAggiungiGenerico">
         <option value="">+ Aggiungi cliente…</option>
@@ -1265,6 +1270,8 @@ function renderGenericiView(){
   </tr></thead><tbody>`;
 
   let catCorrente = null;
+  const totaliPerCliente = clienti.map(() => 0);
+  let totaleGenerale = 0;
   for (const cod of codiciOrdinati) {
     const prod = CATALOGO[cod];
     if (prod.cat !== catCorrente) {
@@ -1272,15 +1279,21 @@ function renderGenericiView(){
       html += `<tr class="cat-header"><td colspan="${clienti.length+2}">${CATEGORIE[catCorrente]}</td></tr>`;
     }
     let totRiga = 0;
-    let celle = clienti.map(c => {
+    let celle = clienti.map((c, i) => {
       const q = c.righe[cod] || 0;
       totRiga += q;
+      totaliPerCliente[i] += q;
       return `<td class="${q?'qty-cell':'qty-zero'}">${q || '·'}</td>`;
     }).join('');
     if (totRiga === 0) continue;
+    totaleGenerale += totRiga;
     html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)} <span style="color:var(--grigio);font-size:0.7rem;">${cod}</span></td>${celle}<td class="tot">${totRiga}</td></tr>`;
   }
-  html += `</tbody></table></div></div>`;
+  html += `</tbody><tfoot><tr class="tot-riga">
+    <td class="rowlabel">Totale colli ordinati</td>
+    ${totaliPerCliente.map(t => `<td class="tot">${t}</td>`).join('')}
+    <td class="tot">${totaleGenerale}</td>
+  </tr></tfoot></table></div></div>`;
 
   html += `<div class="card"><h2 style="font-size:0.9rem;">Gestione clienti</h2><div class="client-list">`;
   clienti.forEach(c => {
