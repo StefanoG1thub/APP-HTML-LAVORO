@@ -1084,11 +1084,9 @@ function caricaStato(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const payload = JSON.parse(raw);
-    if (payload.dataSalvata !== new Date().toDateString()) {
-      // Salvataggio di un giorno precedente: non lo ripristiniamo, si riparte puliti
-      localStorage.removeItem(STORAGE_KEY);
-      return false;
-    }
+    // Nota: non azzeriamo più in base al cambio di data. Il flusso di lavoro è a cavallo
+    // di due giorni (ordine oggi, DDT il giorno dopo), quindi lo stato salvato resta valido
+    // finché non viene azzerato manualmente con "Azzera giornata".
     State.clienti = payload.clienti || {lando: [], generici: [], coop: []};
     State.inventario = payload.inventario || {residuo: {}, reintegro: {}, residuoDDT: {}};
     if (!State.inventario.residuoDDT) State.inventario.residuoDDT = {};
