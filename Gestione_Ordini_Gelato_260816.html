@@ -208,7 +208,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 35</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 36</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -1160,8 +1160,31 @@ function renderMain(){
   else if (State.gruppoAttivo === 'totali') main.innerHTML = renderTotaliView();
   else if (State.gruppoAttivo === 'inventario') main.innerHTML = renderInventarioView();
   attachMainEvents();
+  if (['lando','generici','coop'].includes(State.gruppoAttivo)) adattaLarghezzaColonneClienti();
   salvaStato();
 }
+
+// Ogni colonna cliente occupa (quasi) tutto lo spazio visibile che resta dopo la
+// colonna Referenza fissa e la colonna TOT, cosi' lo scroll deve avanzare un
+// cliente alla volta fino all'ultimo, invece di far comparire insieme gli ultimi
+// clienti solo perche' "ci stanno" tutti sullo schermo con colonne strette.
+// Si ricalcola ad ogni render e ad ogni cambio di orientamento/dimensione schermo.
+function adattaLarghezzaColonneClienti(){
+  document.querySelectorAll('.tablewrap').forEach(wrap => {
+    const intestazioni = wrap.querySelectorAll('thead th:not(.rowlabel):not(.tot)');
+    if (intestazioni.length === 0) return;
+    const rowlabelTh = wrap.querySelector('thead th.rowlabel');
+    const totTh = wrap.querySelector('thead th.tot');
+    const largRowlabel = rowlabelTh ? rowlabelTh.getBoundingClientRect().width : 0;
+    const largTot = totTh ? totTh.getBoundingClientRect().width : 0;
+    const disponibile = wrap.clientWidth - largRowlabel - largTot;
+    const largColonna = Math.max(150, Math.round(disponibile));
+    intestazioni.forEach(th => { th.style.width = largColonna + 'px'; });
+  });
+}
+window.addEventListener('resize', () => {
+  if (['lando','generici','coop'].includes(State.gruppoAttivo)) adattaLarghezzaColonneClienti();
+});
 
 // ---------- VISTA LANDO ----------
 function renderLandoView(){
