@@ -142,7 +142,8 @@ tfoot tr.tot-riga td.rowlabel{background:var(--pistacchio-dark); color:#fff; tex
    dentro la pagina scorrevole si blocca ai bordi (bug noto di Safari), da qui i
    ripetuti "aggiorna pagina" per proseguire. La tabella ora scorre con la pagina
    intera; resta lo scorrimento orizzontale per le tabelle larghe. */
-.tablewrap{overflow-x:auto; border-radius:10px; border:1px solid var(--linea);}
+.tablewrap{overflow-x:auto; border-radius:10px; border:1px solid var(--linea); scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;}
+th.snap-col{scroll-snap-align:start; scroll-snap-stop:always;}
 th.tot{background:var(--pistacchio-dark); color:#fff; font-weight:800;}
 td.tot{font-weight:800; color:var(--amarena-dark); border-left:2px solid var(--linea);}
 td.qty-cell{font-weight:600; color:var(--pistacchio-dark);}
@@ -1200,7 +1201,7 @@ function renderLandoView(){
 
   html += `<div class="card"><div class="tablewrap"><table><thead><tr>
     <th class="rowlabel">Referenza</th>
-    ${colonne.map(col => `<th>${formatNomeClienteHeader(col.nome)}${col.numOrdine ? `<div style="font-size:0.68rem;font-weight:400;opacity:0.85;">ord. ${col.numOrdine}${col.etichetta?` · ${col.etichetta}`:''}</div>` : ''}</th>`).join('')}
+    ${colonne.map(col => `<th class="snap-col">${formatNomeClienteHeader(col.nome)}${col.numOrdine ? `<div style="font-size:0.68rem;font-weight:400;opacity:0.85;">ord. ${col.numOrdine}${col.etichetta?` · ${col.etichetta}`:''}</div>` : ''}</th>`).join('')}
     <th class="tot">TOT</th>
   </tr></thead><tbody>`;
 
@@ -1282,7 +1283,7 @@ function renderGenericiView(){
 
   html += `<div class="card"><div class="tablewrap"><table><thead><tr>
     <th class="rowlabel">Referenza</th>
-    ${clienti.map(c => `<th><span data-modifica-generico="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} ✏️</span></th>`).join('')}
+    ${clienti.map(c => `<th class="snap-col"><span data-modifica-generico="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} ✏️</span></th>`).join('')}
     <th class="tot">TOT</th>
   </tr></thead><tbody>`;
 
@@ -1352,7 +1353,7 @@ function renderCoopView(){
 
   html += `<div class="card"><div class="tablewrap"><table><thead><tr>
     <th class="rowlabel">Referenza</th>
-    ${clienti.map(c => `<th><span data-modifica-coop="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} ✏️</span>${c.numOrdine?`<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${c.numOrdine}</div>`:''}</th>`).join('')}
+    ${clienti.map(c => `<th class="snap-col"><span data-modifica-coop="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} ✏️</span>${c.numOrdine?`<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${c.numOrdine}</div>`:''}</th>`).join('')}
     <th class="tot">TOT</th>
   </tr></thead><tbody>`;
 
