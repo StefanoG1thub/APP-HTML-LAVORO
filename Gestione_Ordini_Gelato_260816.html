@@ -130,6 +130,9 @@ tbody tr.cat-header td{
   background:var(--pistacchio); color:#fff; font-weight:700; text-align:left;
   position:static;
 }
+tbody tr.cat-header td.rowlabel{
+  position:sticky; left:0; text-align:center;
+}
 tfoot tr.tot-riga td{
   background:var(--pistacchio-dark); color:#fff; font-weight:800;
   border-top:2px solid var(--linea); text-align:center; padding:7px 8px;
@@ -1044,6 +1047,21 @@ function nomeProdottoTag(cod){
   return `<span style="${stile}">${pallino}${prod.nome}</span>`;
 }
 
+// Spezza il nome cliente in intestazione su più righe (es. "Vicenza Nuovo (S.Bortolo)"
+// diventa "Vicenza Nuovo" + a capo + "S.Bortolo") per evitare che la colonna si allarghi
+// inutilmente solo per contenere il nome su una riga sola.
+function formatNomeClienteHeader(nome){
+  const m = nome.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+  if (m) return `${m[1].trim()}<br>${m[2].trim()}`;
+  return nome;
+}
+
+// Riga di intestazione categoria (es. "Vasca 500 gr.") centrata nella sola colonna
+// Referenza, invece di un'unica cella con colspan centrata su tutta la tabella.
+function rigaCategoria(nomeCat, extraColonne){
+  return `<tr class="cat-header"><td class="rowlabel" style="text-align:center;">${nomeCat}</td>${'<td></td>'.repeat(extraColonne)}</tr>`;
+}
+
 function mostraToast(msg, durata=2600){
   const root = document.getElementById('toastRoot');
   const el = document.createElement('div');
@@ -1182,7 +1200,7 @@ function renderLandoView(){
 
   html += `<div class="card"><div class="tablewrap"><table><thead><tr>
     <th class="rowlabel">Referenza</th>
-    ${colonne.map(col => `<th>${col.nome}${col.numOrdine ? `<div style="font-size:0.68rem;font-weight:400;opacity:0.85;">ord. ${col.numOrdine}${col.etichetta?` · ${col.etichetta}`:''}</div>` : ''}</th>`).join('')}
+    ${colonne.map(col => `<th>${formatNomeClienteHeader(col.nome)}${col.numOrdine ? `<div style="font-size:0.68rem;font-weight:400;opacity:0.85;">ord. ${col.numOrdine}${col.etichetta?` · ${col.etichetta}`:''}</div>` : ''}</th>`).join('')}
     <th class="tot">TOT</th>
   </tr></thead><tbody>`;
 
@@ -1191,7 +1209,7 @@ function renderLandoView(){
     const prod = CATALOGO[cod];
     if (prod.cat !== catCorrente) {
       catCorrente = prod.cat;
-      html += `<tr class="cat-header"><td colspan="${colonne.length+2}">${CATEGORIE[catCorrente]}</td></tr>`;
+      html += rigaCategoria(CATEGORIE[catCorrente], colonne.length+1);
     }
     let totRiga = 0;
     let celle = colonne.map(col => {
@@ -1264,7 +1282,7 @@ function renderGenericiView(){
 
   html += `<div class="card"><div class="tablewrap"><table><thead><tr>
     <th class="rowlabel">Referenza</th>
-    ${clienti.map(c => `<th><span data-modifica-generico="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${c.nome} ✏️</span></th>`).join('')}
+    ${clienti.map(c => `<th><span data-modifica-generico="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} ✏️</span></th>`).join('')}
     <th class="tot">TOT</th>
   </tr></thead><tbody>`;
 
@@ -1275,7 +1293,7 @@ function renderGenericiView(){
     const prod = CATALOGO[cod];
     if (prod.cat !== catCorrente) {
       catCorrente = prod.cat;
-      html += `<tr class="cat-header"><td colspan="${clienti.length+2}">${CATEGORIE[catCorrente]}</td></tr>`;
+      html += rigaCategoria(CATEGORIE[catCorrente], clienti.length+1);
     }
     let totRiga = 0;
     let celle = clienti.map((c, i) => {
@@ -1334,7 +1352,7 @@ function renderCoopView(){
 
   html += `<div class="card"><div class="tablewrap"><table><thead><tr>
     <th class="rowlabel">Referenza</th>
-    ${clienti.map(c => `<th><span data-modifica-coop="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${c.nome} ✏️</span>${c.numOrdine?`<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${c.numOrdine}</div>`:''}</th>`).join('')}
+    ${clienti.map(c => `<th><span data-modifica-coop="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} ✏️</span>${c.numOrdine?`<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${c.numOrdine}</div>`:''}</th>`).join('')}
     <th class="tot">TOT</th>
   </tr></thead><tbody>`;
 
@@ -1343,7 +1361,7 @@ function renderCoopView(){
     const prod = CATALOGO[cod];
     if (prod.cat !== catCorrente) {
       catCorrente = prod.cat;
-      html += `<tr class="cat-header"><td colspan="${clienti.length+2}">${CATEGORIE[catCorrente]}</td></tr>`;
+      html += rigaCategoria(CATEGORIE[catCorrente], clienti.length+1);
     }
     let totRiga = 0;
     let celle = clienti.map(c => {
@@ -1385,7 +1403,7 @@ function renderTotaliView(){
     const q = totRef[cod] || 0;
     if (prod.cat !== catCorrente) {
       catCorrente = prod.cat;
-      html += `<tr class="cat-header"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
+      html += rigaCategoria(CATEGORIE[catCorrente], 2);
     }
     grandTotal += q;
     html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot ${q?'qty-cell':'qty-zero'}">${q||'·'}</td></tr>`;
@@ -1414,7 +1432,7 @@ function renderTotaliView(){
   } else {
     html += `<div class="tablewrap"><table><thead><tr><th class="rowlabel">Tipologia</th>`;
     colonneLandoTipo.forEach(col => {
-      html += `<th>${col.nome}${col.numOrdine ? `<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${col.numOrdine}${col.etichetta?` · ${col.etichetta}`:''}</div>` : ''}</th>`;
+      html += `<th>${formatNomeClienteHeader(col.nome)}${col.numOrdine ? `<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${col.numOrdine}${col.etichetta?` · ${col.etichetta}`:''}</div>` : ''}</th>`;
     });
     html += `<th class="tot">TOTALE</th></tr></thead><tbody>`;
     for (const [cat, nome] of Object.entries(CATEGORIE)) {
@@ -1466,7 +1484,7 @@ function renderInventarioView(){
       const prod = CATALOGO[cod];
       if (prod.cat !== catCorrente) {
         catCorrente = prod.cat;
-        html += `<tr class="cat-header"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
+        html += rigaCategoria(CATEGORIE[catCorrente], 2);
       }
       const q = map[cod] || 0;
       const attrsInput = usaTastierinoGestione
@@ -1513,7 +1531,7 @@ function renderInventarioView(){
       const prod = CATALOGO[cod];
       if (prod.cat !== catCorrente) {
         catCorrente = prod.cat;
-        html += `<tr class="cat-header"><td colspan="5">${CATEGORIE[catCorrente]}</td></tr>`;
+        html += rigaCategoria(CATEGORIE[catCorrente], 4);
       }
       const residuo = State.inventario.residuo[cod] || 0;
       const reintegro = State.inventario.reintegro[cod] || 0;
@@ -1548,7 +1566,7 @@ function renderInventarioView(){
       const prod = CATALOGO[cod];
       if (prod.cat !== catCorrente) {
         catCorrente = prod.cat;
-        html += `<tr class="cat-header"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
+        html += rigaCategoria(CATEGORIE[catCorrente], 2);
       }
       html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot">${q}</td></tr>`;
     }
@@ -1567,7 +1585,7 @@ function renderInventarioView(){
       const prod = CATALOGO[cod];
       if (prod.cat !== catCorrente) {
         catCorrente = prod.cat;
-        html += `<tr class="cat-header"><td colspan="3">${CATEGORIE[catCorrente]}</td></tr>`;
+        html += rigaCategoria(CATEGORIE[catCorrente], 2);
       }
       const q = mapDDT[cod] || 0;
       const attrsInput = usaTastierinoGestione
@@ -1590,7 +1608,7 @@ function renderInventarioView(){
       const prod = CATALOGO[cod];
       if (prod.cat !== catCorrente) {
         catCorrente = prod.cat;
-        righeDiff += `<tr class="cat-header"><td colspan="4">${CATEGORIE[catCorrente]}</td></tr>`;
+        righeDiff += rigaCategoria(CATEGORIE[catCorrente], 3);
       }
       if (diff !== 0) numDiff++;
       if (diff > 0) numEccesso++;
