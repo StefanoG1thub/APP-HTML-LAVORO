@@ -2229,7 +2229,6 @@ function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti, editCo
   </div>`;
 
   document.getElementById('btnAnnullaManuale').addEventListener('click', chiudiModal);
-  document.getElementById('backdropManuale').addEventListener('click', (e) => { if (e.target.id === 'backdropManuale') chiudiModal(); });
 
   document.querySelectorAll('[data-manuale-qta]').forEach(inp => {
     inp.addEventListener('input', () => {
