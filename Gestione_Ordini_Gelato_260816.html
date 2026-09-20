@@ -1497,13 +1497,13 @@ function renderInventarioView(){
     for (const cod of codiciOrdinatiUfficiale()) totColli += (map[cod]||0);
 
     html += `<div class="card"><h2>Residuo Giacenze Autocarro</h2>
-      <div class="note-box">Giacenza fisica a bordo autocarro (a fine giro o inizio giornata), in <b>colli</b>.</div>
+      <div class="note-box">Giacenza fisica a bordo autocarro (a fine giro o inizio giornata), in <b>fardelli</b> per referenza.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="residuo">📋 Incolla messaggio (riserva)</button>
         <button class="btn btn-secondary" id="btnStampaGiacenze">🖨️ Stampa PDF Giacenze</button>
         <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuo">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
       </div>
-      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th></tr></thead><tbody>`;
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Fardelli</th></tr></thead><tbody>`;
     let catCorrente = null;
     for (const cod of codiciOrdinatiUfficiale()) {
       const prod = CATALOGO[cod];
@@ -1580,11 +1580,11 @@ function renderInventarioView(){
 
     // --- Tabella 1: Residuo Giacenze DDT Fine Giornata (inserimento manuale) ---
     html += `<div class="card"><h2>Residuo Giacenze DDT Fine Giornata</h2>
-      <div class="note-box">Giacenza risultante dal DDT/software TVCE, in <b>colli</b> — la ricopi a mano dal documento cartaceo.</div>
+      <div class="note-box">Giacenza risultante dal DDT/software TVCE, in <b>fardelli</b> — la ricopi a mano dal documento cartaceo o a video dal device.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuoDDT">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
       </div>
-      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th></tr></thead><tbody>`;
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Fardelli</th></tr></thead><tbody>`;
     let catCorrente = null;
     for (const cod of codiciOrdinatiUfficiale()) {
       const prod = CATALOGO[cod];
