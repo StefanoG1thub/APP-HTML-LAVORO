@@ -1617,7 +1617,7 @@ function renderInventarioView(){
       const a = mapAutocarro[cod] || 0;
       const b = mapDDT[cod] || 0;
       if (a === 0 && b === 0) continue;
-      const diff = b - a;
+      const diff = a - b;
       const prod = CATALOGO[cod];
       if (prod.cat !== catCorrente) {
         catCorrente = prod.cat;
@@ -1656,12 +1656,12 @@ function renderInventarioView(){
       }
     }
     html += `<div class="card"><h2>Match Giacenze Autocarro e DDT</h2>
-      <div class="note-box">Giacenze Autocarro − Giacenze DDT per referenza. 🔴 rosso = giacenza reale inferiore al DDT, possibile rottura di stock. 🟢 verde = giacenza reale in eccesso, nessuna rottura di stock, da sistemare solo con l'inventario di fine mese.</div>
+      <div class="note-box">Giacenze Autocarro − Giacenze DDT Fine Giornata per referenza. 🟢 verde = più fardelli sull'autocarro rispetto al DDT (eccesso, nessuna rottura di stock, da sistemare solo con l'inventario di fine mese). 🔴 rosso = meno fardelli sull'autocarro rispetto al DDT, possibile rottura di stock.</div>
       ${bannerDiff}
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-secondary" id="btnStampaControlloGiacenze">🖨️ Stampa PDF Controllo Giacenze</button>
       </div>
-      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Giacenze DDT</th><th>Giacenze Autocarro</th><th class="tot">Differenza</th></tr></thead><tbody>${righeDiff || '<tr><td colspan="4" style="text-align:center; color:var(--grigio); padding:16px;">Nessun dato inserito</td></tr>'}</tbody>`;
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Giacenze Autocarro</th><th>Giacenze DDT Fine Giornata</th><th class="tot">Differenza</th></tr></thead><tbody>${righeDiff || '<tr><td colspan="4" style="text-align:center; color:var(--grigio); padding:16px;">Nessun dato inserito</td></tr>'}</tbody>`;
     if (righeDiff) {
       html += `<tfoot><tr class="tot-riga"><td class="rowlabel">TOTALE</td><td class="tot">${totAutocarro}</td><td class="tot">${totDDT}</td><td class="tot">${totDiff>0?'+':''}${totDiff}</td></tr></tfoot>`;
     }
