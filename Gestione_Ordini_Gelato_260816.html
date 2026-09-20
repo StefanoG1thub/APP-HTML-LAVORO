@@ -2083,7 +2083,7 @@ function stampaPdfControlloGiacenze(){
       catCorrente = prod.cat;
       righe += `<tr class="cat"><td colspan="5">${CATEGORIE[catCorrente]}</td></tr>`;
     }
-    const diff = d - a;
+    const diff = a - d;
     totA += a; totD += d; totDiff += diff;
     const classeRiga = diff > 0 ? ' class="rigaeccesso"' : (diff < 0 ? ' class="rigarottura"' : '');
     const classeDiff = diff > 0 ? ' class="diffpos"' : (diff < 0 ? ' class="diffneg"' : '');
@@ -2094,7 +2094,7 @@ function stampaPdfControlloGiacenze(){
 
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
-    <title>Controllo Giacenze - ${oggi}</title>
+    <title>Match Giacenze Autocarro e DDT - ${oggi}</title>
     <style>
       body{font-family:-apple-system,sans-serif; padding:24px; color:#1a1a2e;}
       h1{font-size:20px; margin-bottom:2px;}
@@ -2116,10 +2116,10 @@ function stampaPdfControlloGiacenze(){
       .tot{margin-top:14px; text-align:right; font-weight:800; font-size:15px;}
       @media print { body{padding:0;} }
     </style></head><body>
-    <h1>🔍 Controllo Giacenze</h1>
+    <h1>⚖️ Match Giacenze Autocarro e DDT</h1>
     <div class="data">${oggi}</div>
-    <table><thead><tr><th>Referenza</th><th>Codice</th><th>Giacenze DDT</th><th>Giacenze Autocarro</th><th>Differenza</th></tr></thead><tbody>${righe}</tbody></table>
-    <div class="tot">Totale Giacenze DDT: ${totA} — Totale Giacenze Autocarro: ${totD} — Differenza: ${totDiff>0?'+':''}${totDiff}</div>
+    <table><thead><tr><th>Referenza</th><th>Codice</th><th>Giacenze Autocarro</th><th>Giacenze DDT Fine Giornata</th><th>Differenza</th></tr></thead><tbody>${righe}</tbody></table>
+    <div class="tot">Totale Giacenze Autocarro: ${totA} — Totale Giacenze DDT Fine Giornata: ${totD} — Differenza: ${totDiff>0?'+':''}${totDiff}</div>
     </body></html>`);
   w.document.close();
   w.onload = () => w.print();
