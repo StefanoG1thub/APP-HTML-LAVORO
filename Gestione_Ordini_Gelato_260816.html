@@ -1007,13 +1007,21 @@ const State = {
 
   reset(){
     this.clienti = {lando: [], generici: [], coop: []};
-    this.inventario = {residuo: {}, reintegro: {}, residuoDDT: {}};
+    // Nota: l'Inventario (Residuo Autocarro, Residuo DDT Fine Giornata, Match) è volutamente
+    // "staccato" dal resto del gestionale: "Azzera giornata" non lo tocca più. Ogni sottosezione
+    // ha il proprio pulsante di azzeramento dedicato (vedi azzeraInventarioSezione).
     // Nota: non richiamiamo più inizializzaGiorno() qui. Prima lo facevamo, ma questo
     // ripopolava subito i punti vendita Lando previsti per il giorno, dando l'impressione
     // che "Azzera giornata" non svuotasse la sottocategoria "Gestione colonne". Ora l'azzeramento
     // è totale: i punti Lando del calendario settimanale verranno riproposti alla riapertura
     // dell'app (vedi INIT in fondo al file), non subito dopo l'azzeramento.
     try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  },
+
+  azzeraInventarioSezione(sezione){
+    // sezione: 'residuo' | 'residuoDDT' | 'match' (match azzera sia Autocarro che DDT insieme)
+    if (sezione === 'residuo' || sezione === 'match') this.inventario.residuo = {};
+    if (sezione === 'residuoDDT' || sezione === 'match') this.inventario.residuoDDT = {};
   }
 };
 
@@ -1502,6 +1510,7 @@ function renderInventarioView(){
         <button class="btn btn-primary" data-incolla-inventario="residuo">📋 Incolla messaggio (riserva)</button>
         <button class="btn btn-secondary" id="btnStampaGiacenze">🖨️ Stampa PDF Giacenze</button>
         <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuo">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
+        <button class="btn btn-danger btn-ghost" data-azzera-inventario="residuo">🗑️ Azzera</button>
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Fardelli</th></tr></thead><tbody>`;
     let catCorrente = null;
@@ -1583,6 +1592,7 @@ function renderInventarioView(){
       <div class="note-box">Giacenza risultante dal DDT/software TVCE, in <b>fardelli</b> — la ricopi a mano dal documento cartaceo o dal video del device.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuoDDT">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
+        <button class="btn btn-danger btn-ghost" data-azzera-inventario="residuoDDT">🗑️ Azzera</button>
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Fardelli</th></tr></thead><tbody>`;
     let catCorrente = null;
@@ -1660,6 +1670,7 @@ function renderInventarioView(){
       ${bannerDiff}
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-secondary" id="btnStampaControlloGiacenze">🖨️ Stampa PDF Controllo Giacenze</button>
+        <button class="btn btn-danger btn-ghost" data-azzera-inventario="match">🗑️ Azzera</button>
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Giacenze Autocarro</th><th>Giacenze DDT Fine Giornata</th><th class="tot">Differenza</th></tr></thead><tbody>${righeDiff || '<tr><td colspan="4" style="text-align:center; color:var(--grigio); padding:16px;">Nessun dato inserito</td></tr>'}</tbody>`;
     if (righeDiff) {
@@ -1792,6 +1803,23 @@ function attachMainEvents(){
 
   const btnStampaControllo = document.getElementById('btnStampaControlloGiacenze');
   if (btnStampaControllo) btnStampaControllo.addEventListener('click', stampaPdfControlloGiacenze);
+
+  document.querySelectorAll('[data-azzera-inventario]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sezione = btn.dataset.azzeraInventario;
+      const testi = {
+        residuo: 'Azzerare i dati di Residuo Giacenze Autocarro?',
+        residuoDDT: 'Azzerare i dati di Residuo Giacenze DDT Fine Giornata?',
+        match: 'Azzerare sia Residuo Giacenze Autocarro che Residuo Giacenze DDT Fine Giornata?'
+      };
+      if (confirm(testi[sezione])) {
+        State.azzeraInventarioSezione(sezione);
+        salvaStato();
+        renderMain();
+        mostraToast('Dati azzerati');
+      }
+    });
+  });
 
   const btnToggleTk = document.getElementById('btnToggleTastierinoGestione');
   if (btnToggleTk) btnToggleTk.addEventListener('click', toggleTastierinoGestione);
