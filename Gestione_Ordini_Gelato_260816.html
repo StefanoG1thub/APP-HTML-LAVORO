@@ -1652,11 +1652,11 @@ function renderInventarioView(){
         bannerDiff += `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numRottura} referenz${numRottura===1?'a':'e'} con errore di scarico in eccesso della merce al cliente (autocarro inferiore al DDT)</div>`;
       }
       if (numEccesso > 0) {
-        bannerDiff += `<div class="note-box" style="border-color:#1e7e34; background:#eaf6ea; color:#1e7e34; font-weight:700; margin-top:8px;">🟢 ${numEccesso} referenz${numEccesso===1?'a':'e'} con giacenza autocarro in eccesso (nessuna rottura di stock, da sistemare con l'inventario)</div>`;
+        bannerDiff += `<div class="note-box" style="border-color:#1e7e34; background:#eaf6ea; color:#1e7e34; font-weight:700; margin-top:8px;">🟢 ${numEccesso} referenz${numEccesso===1?'a':'e'} con giacenza autocarro in eccesso (da sistemare con l'inventario di fine mese)</div>`;
       }
     }
     html += `<div class="card"><h2>Match Giacenze Autocarro e DDT</h2>
-      <div class="note-box">Giacenze Autocarro − Giacenze DDT Fine Giornata per referenza. 🟢 verde = più fardelli sull'autocarro rispetto al DDT (eccesso, da sistemare con l'inventario di fine mese). 🔴 rosso = meno fardelli sull'autocarro rispetto al DDT, errore di scarico in eccesso della merce al cliente.</div>
+      <div class="note-box">Giacenze Autocarro − Giacenze DDT Fine Giornata per referenza.<br><br>🟢 verde = più fardelli sull'autocarro rispetto al DDT (eccesso, da sistemare con l'inventario di fine mese).<br>🔴 rosso = meno fardelli sull'autocarro rispetto al DDT, errore di scarico in eccesso della merce al cliente.</div>
       ${bannerDiff}
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-secondary" id="btnStampaControlloGiacenze">🖨️ Stampa PDF Controllo Giacenze</button>
