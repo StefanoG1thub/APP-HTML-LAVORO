@@ -1443,42 +1443,12 @@ function renderTotaliView(){
   html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE GENERALE</td><td></td><td class="tot">${grandTotal}</td></tr>`;
   html += `</tbody></table></div></div>`;
 
-  html += `<div class="card"><h2>Totale per tipologia (tutti i clienti)</h2><div class="tablewrap"><table><thead><tr><th class="rowlabel">Tipologia</th><th class="tot">Colli</th></tr></thead><tbody>`;
+  html += `<div class="card"><h2>Totale per Linea Prodotto (tutti i clienti)</h2><div class="tablewrap"><table><thead><tr><th class="rowlabel">Linea Prodotto</th><th class="tot">Colli</th></tr></thead><tbody>`;
   for (const [cat, nome] of Object.entries(CATEGORIE)) {
     const q = totCat[cat] || 0;
     html += `<tr><td class="rowlabel">${nome}</td><td class="tot ${q?'qty-cell':'qty-zero'}">${q||'·'}</td></tr>`;
   }
   html += `</tbody></table></div></div>`;
-
-  // Colonne = uno per ogni ordine Lando caricato oggi (stessa logica di renderLandoView)
-  let colonneLandoTipo = [];
-  State.clienti.lando.forEach(c => {
-    c.ordini.forEach((o, idx) => {
-      colonneLandoTipo.push({nome: c.nome, numOrdine: o.numOrdine, etichetta: o.etichetta, righe: o.righe});
-    });
-  });
-
-  html += `<div class="card"><h2>Totale Lando per tipologia <span class="badge lando">controllo scarico furgone</span></h2>`;
-  if (colonneLandoTipo.length === 0) {
-    html += `<div class="empty-state" style="padding:16px;">Nessun ordine Lando caricato oggi.</div></div>`;
-  } else {
-    html += `<div class="tablewrap"><table><thead><tr><th class="rowlabel">Tipologia</th>`;
-    colonneLandoTipo.forEach(col => {
-      html += `<th>${formatNomeClienteHeader(col.nome)}${col.numOrdine ? `<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${col.numOrdine}${col.etichetta?` · ${col.etichetta}`:''}</div>` : ''}</th>`;
-    });
-    html += `<th class="tot">TOTALE</th></tr></thead><tbody>`;
-    for (const [cat, nome] of Object.entries(CATEGORIE)) {
-      let totRiga = 0;
-      const celle = colonneLandoTipo.map(col => {
-        const totOrdine = State.totalePerTipologiaSingoloOrdine(col.righe);
-        const q = totOrdine[cat] || 0;
-        totRiga += q;
-        return `<td class="${q?'qty-cell':'qty-zero'}">${q||'·'}</td>`;
-      }).join('');
-      html += `<tr><td class="rowlabel">${nome}</td>${celle}<td class="tot ${totRiga?'qty-cell':'qty-zero'}">${totRiga||'·'}</td></tr>`;
-    }
-    html += `</tbody></table></div></div>`;
-  }
 
   html += `<div class="card"><div class="row">
     <button class="btn btn-primary" id="btnEsportaExcel">📥 Esporta in Excel</button>
