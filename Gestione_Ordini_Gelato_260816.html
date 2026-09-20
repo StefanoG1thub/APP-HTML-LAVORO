@@ -1484,7 +1484,7 @@ function renderTotaliView(){
 function renderInventarioView(){
   const sotto = State.inventarioSotto;
   let html = `<div class="tabbar" id="subtabbarInventario" style="margin-bottom:10px;">
-    <button data-subtab="residuo" class="${sotto==='residuo'?'active':''}">🚛 Residuo Giacenze DDT</button>
+    <button data-subtab="residuo" class="${sotto==='residuo'?'active':''}">🚛 Residuo Giacenze Autocarro</button>
     <button data-subtab="reintegro" class="${sotto==='reintegro'?'active':''}">📦 Carico Reintegro</button>
     <button data-subtab="totali" class="${sotto==='totali'?'active':''}">📊 Totali &amp; Disponibilità</button>
     <button data-subtab="controllo" class="${sotto==='controllo'?'active':''}">🔍 Controllo Giacenze</button>
@@ -1495,7 +1495,7 @@ function renderInventarioView(){
     let totColli = 0;
     for (const cod of codiciOrdinatiUfficiale()) totColli += (map[cod]||0);
 
-    html += `<div class="card"><h2>Residuo Giacenze DDT</h2>
+    html += `<div class="card"><h2>Residuo Giacenze Autocarro</h2>
       <div class="note-box">Giacenza fisica a bordo autocarro (a fine giro o inizio giornata), in <b>colli</b> — stessa unità con cui inserisci gli ordini clienti.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="residuo">📋 Incolla messaggio (riserva)</button>
@@ -2137,7 +2137,7 @@ function stampaPdfControlloGiacenze(){
 }
 
 function apriIncollaInventario(tipo){
-  const titolo = tipo === 'residuo' ? 'Residuo Giacenze DDT' : 'Carico Reintegro';
+  const titolo = tipo === 'residuo' ? 'Residuo Giacenze Autocarro' : 'Carico Reintegro';
   const root = document.getElementById('modalRoot');
   root.innerHTML = `
   <div class="modal-backdrop" id="backdropIncollaInv">
