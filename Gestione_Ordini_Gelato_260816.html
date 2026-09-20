@@ -1649,7 +1649,7 @@ function renderInventarioView(){
     } else {
       bannerDiff = '';
       if (numRottura > 0) {
-        bannerDiff += `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numRottura} referenz${numRottura===1?'a':'e'} con probabile rottura di stock (autocarro inferiore al DDT)</div>`;
+        bannerDiff += `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numRottura} referenz${numRottura===1?'a':'e'} con errore di scarico in eccesso della merce al cliente (autocarro inferiore al DDT)</div>`;
       }
       if (numEccesso > 0) {
         bannerDiff += `<div class="note-box" style="border-color:#1e7e34; background:#eaf6ea; color:#1e7e34; font-weight:700; margin-top:8px;">🟢 ${numEccesso} referenz${numEccesso===1?'a':'e'} con giacenza autocarro in eccesso (nessuna rottura di stock, da sistemare con l'inventario)</div>`;
