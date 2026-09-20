@@ -1486,6 +1486,7 @@ function renderInventarioView(){
   let html = `<div class="tabbar" id="subtabbarInventario" style="margin-bottom:10px;">
     <button data-subtab="residuo" class="${sotto==='residuo'?'active':''}">🚛 Residuo Giacenze Autocarro</button>
     <button data-subtab="controllo" class="${sotto==='controllo'?'active':''}">🔍 Residuo Giacenze DDT Fine Giornata</button>
+    <button data-subtab="match" class="${sotto==='match'?'active':''}">⚖️ Match Giacenze Autocarro e DDT</button>
     <button data-subtab="reintegro" class="${sotto==='reintegro'?'active':''}">📦 Carico Reintegro</button>
     <button data-subtab="totali" class="${sotto==='totali'?'active':''}">📊 Totali &amp; Disponibilità</button>
   </div>`;
@@ -1571,11 +1572,9 @@ function renderInventarioView(){
     }
     html += `</tbody></table></div></div>`;
   } else if (sotto === 'controllo') {
-    const mapAutocarro = State.inventario.residuo;
     const mapDDT = State.inventario.residuoDDT;
-    let totAutocarro = 0, totDDT = 0, totDiff = 0, numDiff = 0;
+    let totDDT = 0;
     for (const cod of codiciOrdinatiUfficiale()) {
-      totAutocarro += (mapAutocarro[cod]||0);
       totDDT += (mapDDT[cod]||0);
     }
 
@@ -1601,10 +1600,18 @@ function renderInventarioView(){
     }
     html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot" id="totaleInventarioresiduoDDT">${totDDT}</td></tr>`;
     html += `</tbody></table></div></div>`;
+  } else if (sotto === 'match') {
+    const mapAutocarro = State.inventario.residuo;
+    const mapDDT = State.inventario.residuoDDT;
+    let totAutocarro = 0, totDDT = 0, totDiff = 0, numDiff = 0;
+    for (const cod of codiciOrdinatiUfficiale()) {
+      totAutocarro += (mapAutocarro[cod]||0);
+      totDDT += (mapDDT[cod]||0);
+    }
 
-    // --- Tabella 3: Differenze ---
+    // --- Tabella: Match Giacenze Autocarro e DDT ---
     let righeDiff = '';
-    catCorrente = null;
+    let catCorrente = null;
     let numRottura = 0, numEccesso = 0;
     for (const cod of codiciOrdinatiUfficiale()) {
       const a = mapAutocarro[cod] || 0;
@@ -1648,7 +1655,7 @@ function renderInventarioView(){
         bannerDiff += `<div class="note-box" style="border-color:#1e7e34; background:#eaf6ea; color:#1e7e34; font-weight:700; margin-top:8px;">🟢 ${numEccesso} referenz${numEccesso===1?'a':'e'} con giacenza autocarro in eccesso (nessuna rottura di stock, da sistemare con l'inventario)</div>`;
       }
     }
-    html += `<div class="card"><h2>Differenze</h2>
+    html += `<div class="card"><h2>Match Giacenze Autocarro e DDT</h2>
       <div class="note-box">Giacenze Autocarro − Giacenze DDT per referenza. 🔴 rosso = giacenza reale inferiore al DDT, possibile rottura di stock. 🟢 verde = giacenza reale in eccesso, nessuna rottura di stock, da sistemare solo con l'inventario di fine mese.</div>
       ${bannerDiff}
       <div class="row" style="margin:10px 0; gap:8px;">
