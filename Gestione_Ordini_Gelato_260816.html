@@ -208,7 +208,7 @@ td.qty-zero{color:#c4bdaa;}
 <header>
   <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
     <div>
-      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 54</span></h1>
+      <h1>🍨 Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 55</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
     <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
@@ -1254,7 +1254,7 @@ function renderLandoView(){
     html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)} <span style="color:var(--grigio);font-size:0.7rem;">${cod}</span></td>${celle}<td class="tot">${totRiga}</td></tr>`;
   }
 
-  html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE COLLI</td>${colonne.map(col=>{
+  html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALI FARDELLI</td>${colonne.map(col=>{
     const c = clienti.find(c=>c.id===col.clienteId);
     const tot = Object.values(c.ordini[col.ordineIdx].righe).reduce((a,b)=>a+b,0);
     return `<td class="tot">${tot}</td>`;
@@ -1339,7 +1339,7 @@ function renderGenericiView(){
     html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)} <span style="color:var(--grigio);font-size:0.7rem;">${cod}</span></td>${celle}<td class="tot">${totRiga}</td></tr>`;
   }
   html += `</tbody><tfoot><tr class="tot-riga">
-    <td class="rowlabel">Totale colli ordinati</td>
+    <td class="rowlabel">Totali fardelli ordinati</td>
     ${totaliPerCliente.map(t => `<td class="tot">${t}</td>`).join('')}
     <td class="tot">${totaleGenerale}</td>
   </tr></tfoot></table></div></div>`;
@@ -1405,7 +1405,7 @@ function renderCoopView(){
     const noteTag = prod.note ? ` <span style="color:var(--grigio);font-size:0.65rem;">(${prod.note})</span>` : '';
     html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)} <span style="color:var(--grigio);font-size:0.7rem;">${cod}</span>${noteTag}</td>${celle}<td class="tot">${totRiga}</td></tr>`;
   }
-  html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE COLLI</td>${clienti.map(c=>{
+  html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALI FARDELLI</td>${clienti.map(c=>{
     const tot = Object.values(c.righe).reduce((a,b)=>a+b,0);
     return `<td class="tot">${tot}</td>`;
   }).join('')}<td class="tot">${clienti.reduce((acc,c)=>acc+Object.values(c.righe).reduce((a,b)=>a+b,0),0)}</td></tr>`;
@@ -1427,7 +1427,7 @@ function renderTotaliView(){
   const totCat = State.totalePerCategoria();
 
   let html = `<div class="card"><h2>Totale tutti gli ordini — per referenza</h2><div class="note-box">Ordine compatibile per DDT e riordino magazzino.</div>`;
-  html += `<div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Totale colli</th></tr></thead><tbody>`;
+  html += `<div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Totale fardelli</th></tr></thead><tbody>`;
   let catCorrente = null;
   let grandTotal = 0;
   for (const cod of codiciOrdinatiUfficiale()) {
@@ -1440,10 +1440,10 @@ function renderTotaliView(){
     grandTotal += q;
     html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot ${q?'qty-cell':'qty-zero'}">${q||'·'}</td></tr>`;
   }
-  html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE GENERALE</td><td></td><td class="tot">${grandTotal}</td></tr>`;
+  html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALI GENERALI</td><td></td><td class="tot">${grandTotal}</td></tr>`;
   html += `</tbody></table></div></div>`;
 
-  html += `<div class="card"><h2>Totale per Linea Prodotto (tutti i clienti)</h2><div class="tablewrap"><table><thead><tr><th class="rowlabel">Linea Prodotto</th><th class="tot">Colli</th></tr></thead><tbody>`;
+  html += `<div class="card"><h2>Totali per Linea Prodotto ( tutti i clienti )</h2><div class="tablewrap"><table><thead><tr><th class="rowlabel">Linea Prodotto</th><th class="tot">Fardelli</th></tr></thead><tbody>`;
   for (const [cat, nome] of Object.entries(CATEGORIE)) {
     const q = totCat[cat] || 0;
     html += `<tr><td class="rowlabel">${nome}</td><td class="tot ${q?'qty-cell':'qty-zero'}">${q||'·'}</td></tr>`;
@@ -1496,7 +1496,7 @@ function renderInventarioView(){
         : `data-qta-inventario="residuo|${cod}"`;
       html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="${usaTastierinoGestione?'text':'number'}" min="0" value="${q||''}" placeholder="0" id="qi_residuo_${cod}" ${attrsInput} style="width:64px; text-align:center;"></td></tr>`;
     }
-    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot" id="totaleInventarioresiduo">${totColli}</td></tr>`;
+    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALI</td><td></td><td class="tot" id="totaleInventarioresiduo">${totColli}</td></tr>`;
     html += `</tbody></table></div></div>`;
   } else if (sotto === 'reintegro') {
     const map = State.inventario.reintegro;
@@ -1505,12 +1505,12 @@ function renderInventarioView(){
     for (const cod of codiciDDT) tot += (map[cod]||0);
 
     html += `<div class="card"><h2>Carico Reintegro</h2>
-      <div class="note-box">Merce caricata dal magazzino, in <b>colli</b> — stessa unità con cui inserisci gli ordini clienti. Ordine per codice crescente, come sul DDT cartaceo (il 4193 è in fondo perché stagionale).</div>
+      <div class="note-box">Merce caricata dal magazzino, in <b>fardelli</b> — stessa unità con cui inserisci gli ordini clienti. Ordine per codice crescente, come sul DDT cartaceo (il 4193 è in fondo perché stagionale).</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="reintegro">📋 Incolla messaggio (riserva)</button>
         <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="reintegro">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
       </div>
-      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Colli</th></tr></thead><tbody>`;
+      <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Fardelli</th></tr></thead><tbody>`;
     for (const cod of codiciDDT) {
       const q = map[cod] || 0;
       const attrsInput = usaTastierinoGestione
@@ -1518,7 +1518,7 @@ function renderInventarioView(){
         : `data-qta-inventario="reintegro|${cod}"`;
       html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="${usaTastierinoGestione?'text':'number'}" min="0" value="${q||''}" placeholder="0" id="qi_reintegro_${cod}" ${attrsInput} style="width:64px; text-align:center;"></td></tr>`;
     }
-    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot" id="totaleInventarioreintegro">${tot}</td></tr>`;
+    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALI</td><td></td><td class="tot" id="totaleInventarioreintegro">${tot}</td></tr>`;
     html += `</tbody></table></div></div>`;
   } else if (sotto === 'totali') {
     const disp = State.disponibilitaPerReferenza();
@@ -1527,7 +1527,7 @@ function renderInventarioView(){
       ? `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numRotture} referenz${numRotture===1?'a':'e'} in rottura di stock</div>`
       : `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;">✓ Nessuna rottura di stock al momento</div>`;
     html += `<div class="card"><h2>Totali &amp; Disponibilità</h2>
-      <div class="note-box">Residuo autocarro + carico reintegro − quanto già impegnato negli ordini clienti caricati oggi. Tutti i valori qui sotto sono in colli. Un valore negativo o a zero segnala una possibile rottura di stock su quella referenza.</div>
+      <div class="note-box">Residuo autocarro + carico reintegro − quanto già impegnato negli ordini clienti caricati oggi. Tutti i valori qui sotto sono in fardelli. Un valore negativo o a zero segnala una possibile rottura di stock su quella referenza.</div>
       ${bannerRotture}
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Residuo</th><th>Reintegro</th><th>Impegnato</th><th class="tot">Disponibile</th></tr></thead><tbody>`;
     let catCorrente = null;
@@ -1578,7 +1578,7 @@ function renderInventarioView(){
         : `data-qta-inventario="residuoDDT|${cod}"`;
       html += `<tr><td class="rowlabel">${nomeProdottoTag(cod)}</td><td>${cod}</td><td class="tot"><input type="${usaTastierinoGestione?'text':'number'}" min="0" value="${q||''}" placeholder="0" id="qi_residuoDDT_${cod}" ${attrsInput} style="width:64px; text-align:center;"></td></tr>`;
     }
-    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALE</td><td></td><td class="tot" id="totaleInventarioresiduoDDT">${totDDT}</td></tr>`;
+    html += `<tr><td class="rowlabel" style="font-weight:800;">TOTALI</td><td></td><td class="tot" id="totaleInventarioresiduoDDT">${totDDT}</td></tr>`;
     html += `</tbody></table></div></div>`;
   } else if (sotto === 'match') {
     const mapAutocarro = State.inventario.residuo;
@@ -1644,7 +1644,7 @@ function renderInventarioView(){
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Giacenze Autocarro</th><th>Giacenze DDT Fine Giornata</th><th class="tot">Differenza</th></tr></thead><tbody>${righeDiff || '<tr><td colspan="4" style="text-align:center; color:var(--grigio); padding:16px;">Nessun dato inserito</td></tr>'}</tbody>`;
     if (righeDiff) {
-      html += `<tfoot><tr class="tot-riga"><td class="rowlabel">TOTALE</td><td class="tot">${totAutocarro}</td><td class="tot">${totDDT}</td><td class="tot">${totDiff>0?'+':''}${totDiff}</td></tr></tfoot>`;
+      html += `<tfoot><tr class="tot-riga"><td class="rowlabel">TOTALI</td><td class="tot">${totAutocarro}</td><td class="tot">${totDDT}</td><td class="tot">${totDiff>0?'+':''}${totDiff}</td></tr></tfoot>`;
     }
     html += `</table></div></div>`;
   }
@@ -1895,7 +1895,7 @@ function mostraAnteprimaConferma(risultato, gruppo){
         ${risultato.cliente ? `Cliente: <b>${risultato.cliente}</b>` : ''}
         ${risultato.numOrdine ? ` · N. ordine: <b>${risultato.numOrdine}</b>` : ''}
         ${risultato.dataConsegna ? ` · Consegna: <b>${risultato.dataConsegna}</b>` : ''}
-        <br>${righeConDati.length} referenze trovate · Totale ordine: <b id="previewTotaleColli">${righeConDati.reduce((s,r)=>s+r.qta,0)}</b> colli. Controlla le quantità prima di confermare.
+        <br>${righeConDati.length} referenze trovate · Totale ordine: <b id="previewTotaleColli">${righeConDati.reduce((s,r)=>s+r.qta,0)}</b> fardelli. Controlla le quantità prima di confermare.
       </div>
       ${extraCampi}
       <div class="preview-row header-row">
@@ -2215,7 +2215,7 @@ function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti, editCo
       <div class="modal-sub">${editContextLando ? 'Correggi le quantità già caricate (es. scorta già presente in cella).' : 'Scrivi solo le quantità che ti servono, lascia vuoto il resto.'}</div>
       ${extraCampi}
       <div class="totale-box" style="display:flex; justify-content:space-between; align-items:center; background:var(--linea); border-radius:10px; padding:10px 14px; margin-bottom:10px; font-weight:700;">
-        <span>Totale colli</span>
+        <span>Totale fardelli</span>
         <span id="manualeTotaleColli" style="color:var(--amarena); font-size:1.1rem;">${totaleIniziale}</span>
       </div>
       <div id="manualeRows">${righeHtml}</div>
@@ -2323,7 +2323,7 @@ function generaExcel(){
 
   // Totali per referenza
   const totRef = State.totalePerReferenza();
-  const aoaTot = [["Codice","Descrizione","Totale colli"]];
+  const aoaTot = [["Codice","Descrizione","Totale fardelli"]];
   for (const cod of codiciOrdinatiUfficiale()) {
     const q = totRef[cod] || 0;
     aoaTot.push([cod, CATALOGO[cod].nome, q]);
@@ -2335,7 +2335,7 @@ function generaExcel(){
   State.clienti.lando.forEach(c => c.ordini.forEach((o,idx) => colonneLandoTipoExcel.push({
     nome: `${c.nome}${o.numOrdine ? ' ('+o.numOrdine+')' : ''}`, righe: o.righe
   })));
-  const aoaTipo = [["Tipologia", ...colonneLandoTipoExcel.map(c=>c.nome), "TOTALE"]];
+  const aoaTipo = [["Tipologia", ...colonneLandoTipoExcel.map(c=>c.nome), "TOTALI"]];
   for (const [cat,nome] of Object.entries(CATEGORIE)) {
     const vals = colonneLandoTipoExcel.map(c => State.totalePerTipologiaSingoloOrdine(c.righe)[cat] || 0);
     const tot = vals.reduce((a,b)=>a+b,0);
