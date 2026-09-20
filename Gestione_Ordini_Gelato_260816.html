@@ -1496,7 +1496,7 @@ function renderInventarioView(){
     for (const cod of codiciOrdinatiUfficiale()) totColli += (map[cod]||0);
 
     html += `<div class="card"><h2>Residuo Giacenze Autocarro</h2>
-      <div class="note-box">Giacenza fisica a bordo autocarro (a fine giro o inizio giornata), in <b>colli</b> — stessa unità con cui inserisci gli ordini clienti.</div>
+      <div class="note-box">Giacenza fisica a bordo autocarro (a fine giro o inizio giornata), in <b>colli</b>.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
         <button class="btn btn-primary" data-incolla-inventario="residuo">📋 Incolla messaggio (riserva)</button>
         <button class="btn btn-secondary" id="btnStampaGiacenze">🖨️ Stampa PDF Giacenze</button>
