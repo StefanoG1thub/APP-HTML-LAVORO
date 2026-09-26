@@ -10,7 +10,89 @@
 :root{--green:#214f3b;--green2:#2f6b50;--cream:#f7f5ef}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--cream);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Segoe UI,Roboto,sans-serif}body{overflow:hidden}#appFrame{display:block;width:100%;height:100%;border:0;background:var(--cream)}
 </style>
-</head>
+
+<style id="chatgpt-redesign-v3">
+:root{
+ --ui-forest:#173f2e;--ui-forest-2:#24583f;--ui-mint:#4e8a68;--ui-sage:#dfece3;
+ --ui-cream:#f6f3ea;--ui-paper:#fffdf8;--ui-ink:#193329;--ui-muted:#6e7d75;
+ --ui-gold:#c99a52;--ui-berry:#9a3e4b;--ui-line:#d7e1da;
+}
+html,body{background:var(--ui-cream)!important;color:var(--ui-ink)!important}
+body{font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif!important}
+header{
+ position:relative!important;overflow:hidden!important;
+ min-height:176px!important;padding:28px 34px 22px!important;
+ background:
+ radial-gradient(circle at 83% 18%,rgba(255,255,255,.12),transparent 22%),
+ linear-gradient(120deg,#123b2a 0%,#1d5b3d 52%,#2c704c 100%)!important;
+ box-shadow:0 10px 28px rgba(20,55,39,.18)!important;
+}
+header:before{
+ content:"";position:absolute;inset:0;pointer-events:none;opacity:.13;
+ background-image:linear-gradient(rgba(255,255,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.22) 1px,transparent 1px);
+ background-size:34px 34px;
+ mask-image:linear-gradient(90deg,black,transparent 72%);
+}
+header:after{
+ content:"";position:absolute;right:-80px;top:-110px;width:470px;height:260px;border:1px solid rgba(255,255,255,.16);
+ border-radius:50%;transform:rotate(-12deg);box-shadow:0 0 0 18px rgba(255,255,255,.025),0 0 0 36px rgba(255,255,255,.018);
+ pointer-events:none;
+}
+header>div:first-child{position:relative;z-index:2!important;display:flex!important;align-items:center!important;gap:14px!important}
+header>div:first-child:before{display:none!important}
+header h1{
+ margin:0!important;font-size:1.42rem!important;line-height:1.08!important;letter-spacing:.3px!important;
+ text-transform:none!important;font-weight:760!important;color:#fff!important;
+}
+header h1 .brand-accent{color:#b9ee72!important;font-style:italic}
+header .sub{font-size:.78rem!important;letter-spacing:.08em!important;text-transform:uppercase!important;color:rgba(255,255,255,.72)!important}
+header .chatgpt-tagline{
+ margin:10px 0 0 53px!important;color:rgba(255,255,255,.82)!important;font-size:.82rem!important;
+ letter-spacing:.01em!important;position:relative;z-index:2!important
+}
+.chatgpt-gelato-mark{
+ width:42px;height:42px;flex:0 0 42px;border-radius:13px;
+ background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.2);
+ display:grid;place-items:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)
+}
+.chatgpt-gelato-mark svg{width:30px;height:30px}
+header button{position:relative;z-index:4!important;border-radius:12px!important;background:rgba(255,255,255,.11)!important;border:1px solid rgba(255,255,255,.2)!important}
+.tabbar{
+ position:relative!important;z-index:5!important;display:flex!important;gap:8px!important;
+ padding:10px 20px 0!important;background:#123b2a!important;border-bottom:1px solid rgba(255,255,255,.08)!important
+}
+.tabbar button{
+ position:relative!important;background:rgba(255,255,255,.055)!important;color:rgba(255,255,255,.78)!important;
+ border:1px solid rgba(255,255,255,.08)!important;border-radius:14px 14px 0 0!important;
+ padding:12px 20px!important;font-size:.9rem!important;font-weight:680!important;letter-spacing:.01em!important
+}
+.tabbar button.active{
+ background:var(--ui-cream)!important;color:var(--ui-forest)!important;border-color:var(--ui-cream)!important;
+ box-shadow:0 -5px 18px rgba(0,0,0,.07)!important
+}
+main{max-width:1540px!important;padding:24px 24px 44px!important}
+.card{
+ background:var(--ui-paper)!important;border:1px solid var(--ui-line)!important;border-radius:18px!important;
+ box-shadow:0 8px 26px rgba(30,57,44,.07)!important;padding:22px!important
+}
+.card h2{font-size:1.02rem!important;letter-spacing:.01em!important;color:var(--ui-forest)!important}
+.btn{border-radius:12px!important;padding:10px 16px!important;font-size:.82rem!important;letter-spacing:.01em!important}
+.btn-primary{background:var(--ui-forest-2)!important}
+.btn-primary:hover{background:#2f6b4d!important}
+.btn-secondary{background:#eef3ef!important;color:var(--ui-forest)!important}
+.btn-ghost{background:transparent!important;border:1px solid #79a68d!important;color:var(--ui-forest-2)!important}
+.btn-danger,.chatgpt-reset-btn{background:var(--ui-berry)!important;color:#fff!important;border-color:#84343f!important}
+.tablewrap{border-radius:14px!important;border:1px solid #cfdcd4!important;box-shadow:0 5px 18px rgba(26,52,40,.06)!important}
+thead th{background:var(--ui-forest)!important;color:#fff!important;font-size:.78rem!important;letter-spacing:.03em!important}
+tbody tr:nth-child(odd) td{background:#fffdf9!important}
+tbody tr:nth-child(even) td{background:#e2eee6!important}
+tbody tr:hover td{background:#d2e5da!important}
+tbody tr.cat-header td{background:#cfe1d6!important;color:var(--ui-forest)!important}
+tfoot tr.tot-riga td{background:var(--ui-forest)!important;color:#fff!important}
+input,select{font-family:inherit!important}
+.note-box{background:#faf4e7!important;border-left-color:var(--ui-gold)!important}
+.empty-state .icon{background:#e3efe7!important;border-radius:24px!important}
+</style></head>
 <body>
 <iframe id="appFrame" title="Gestione Ordini Gelato"></iframe>
 <script>
@@ -69,5 +151,37 @@ select,input[type=text],input[type=number]{border:1.5px solid #d7e0da!important;
  new MutationObserver(()=>pulisciEmoji(d.body)).observe(d.body,{childList:true,subtree:true});
 });
 </script>
-</body>
+
+<script id="chatgpt-redesign-v3-script">
+(()=>{const d=document;
+ const clean=(root)=>{
+   const w=d.createTreeWalker(root,NodeFilter.SHOW_TEXT);const a=[];let n;
+   while(n=w.nextNode())a.push(n);
+   a.forEach(x=>x.nodeValue=x.nodeValue.replace(/\\p{Extended_Pictographic}|\\uFE0F/gu,""));
+ };
+ clean(d.body);
+ const h=d.querySelector("header");
+ if(h){
+   const first=h.querySelector(":scope>div:first-child");
+   if(first && !first.querySelector(".chatgpt-gelato-mark")){
+     const mark=d.createElement("div");mark.className="chatgpt-gelato-mark";
+     mark.innerHTML='<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 29h28l-2.2 9.5A4.5 4.5 0 0 1 31.4 42H16.6a4.5 4.5 0 0 1-4.4-3.5L10 29Z" fill="#FFFDF8"/><path d="M13 29c.7-7.5 5.7-12 11-12s10.3 4.5 11 12" stroke="#B9EE72" stroke-width="3" stroke-linecap="round"/><path d="M17 17c.2-3.1 2.1-5.4 4.8-5.4 2.8 0 4.9 2.3 4.9 5.4" stroke="#C99A52" stroke-width="3" stroke-linecap="round"/><path d="M15 34h18" stroke="#24583F" stroke-width="2.2" stroke-linecap="round"/></svg>';
+     first.prepend(mark);
+   }
+   let title=h.querySelector("h1");
+   if(title){
+     const txt=title.textContent.replace(/\\s+/g," ").trim();
+     title.innerHTML='<span>Gestione Ordini</span> <span class="brand-accent">Gelato</span>';
+   }
+   if(!h.querySelector(".chatgpt-tagline")){
+     const p=d.createElement("div");p.className="chatgpt-tagline";
+     p.textContent="Ordini, consegne e controllo. Tutto in un'unica regia.";
+     h.appendChild(p);
+   }
+ }
+ // Mantiene le diciture funzionali e interviene solo sulla presentazione.
+ const obs=new MutationObserver(()=>clean(d.body));
+ obs.observe(d.body,{childList:true,subtree:true});
+})();
+</script></body>
 </html>
