@@ -385,6 +385,30 @@ tbody tr.cat-header td.rowlabel{background:#668aa1!important}
 /* Build 60 — colori dedicati per referenze speciali */
 td.rowlabel span[style*="#287246"],
 td.rowlabel span[style*="#16788f"]{letter-spacing:.05px}
+</style><style id="chatgpt-build61">
+/* Build 61 — evidenza testuale per BIO e SENZA LATTOSIO */
+.badge-special{
+  display:inline-block;
+  margin-left:5px;
+  padding:2px 7px;
+  border-radius:6px;
+  font-size:.68em;
+  line-height:1.2;
+  letter-spacing:.45px;
+  font-weight:900;
+  vertical-align:middle;
+  white-space:nowrap;
+}
+.badge-bio{
+  color:#185d35;
+  background:#cfe6d6;
+  border:1px solid #78ad89;
+}
+.badge-senza-lattosio{
+  color:#155f70;
+  background:#c9e3e9;
+  border:1px solid #65a8b7;
+}
 </style></head>
 <body>
 
@@ -1235,8 +1259,15 @@ function nomeProdottoTag(cod){
   let stile = '';
   if (prod.colore === 'verde') stile = 'color:#287246; font-weight:800;';
   else if (prod.colore === 'azzurro') stile = 'color:#16788f; font-weight:800;';
-  const pallino = prod.colore === 'verde' ? '🟢 ' : (prod.colore === 'azzurro' ? '🔵 ' : '');
-  return `<span style="${stile}">${pallino}${prod.nome}</span>`;
+  let nome = prod.nome;
+  if (/Panna Cacao Bio/i.test(nome)) {
+    nome = nome.replace(/\s*Bio\s*$/i, ' <span class="badge-special badge-bio">BIO</span>');
+  } else if (/Crema Vaniglia Bio/i.test(nome)) {
+    nome = nome.replace(/\s*Bio\s*$/i, ' <span class="badge-special badge-bio">BIO</span>');
+  } else if (/Fiordipanna senza lattosio/i.test(nome)) {
+    nome = nome.replace(/Fiordipanna senza lattosio/i, 'Fiordipanna <span class="badge-special badge-senza-lattosio">SENZA LATTOSIO</span>');
+  }
+  return `<span style="${stile}">${nome}</span>`;
 }
 
 // Spezza il nome cliente in intestazione su più righe (es. "Vicenza Nuovo (S.Bortolo)"
