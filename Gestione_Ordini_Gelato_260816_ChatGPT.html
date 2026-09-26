@@ -409,14 +409,23 @@ td.rowlabel span[style*="#16788f"]{letter-spacing:.05px}
   background:#c9e3e9;
   border:1px solid #65a8b7;
 }
-</style><style id="chatgpt-build62">
-/* Build 62 — sostituzione emoji con micro-iconografia CSS */
+</style><style id="chatgpt-build63">
+/* Build 63 — interfaccia pulita: rimozione definitiva delle micro-iconografie */
+.tabbar button::before{content:none!important;display:none!important}
 .tabbar button{position:relative}
-.tabbar button[data-tab="lando"]::before{content:"";display:inline-block;width:9px;height:9px;border:2px solid currentColor;border-radius:3px;margin-right:8px;vertical-align:1px}
-.tabbar button[data-tab="generici"]::before{content:"";display:inline-block;width:10px;height:8px;border:2px solid currentColor;border-radius:2px;margin-right:8px;vertical-align:1px}
-.tabbar button[data-tab="coop"]::before{content:"";display:inline-block;width:10px;height:10px;border:2px solid currentColor;border-radius:50%;margin-right:8px;vertical-align:0}
-.tabbar button[data-tab="totali"]::before{content:"";display:inline-block;width:11px;height:11px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;margin-right:8px;vertical-align:-1px}
-.tabbar button[data-tab="inventario"]::before{content:"";display:inline-block;width:8px;height:11px;border:2px solid currentColor;border-radius:5px 5px 3px 3px;margin-right:8px;vertical-align:-1px}
+
+/* Pulsanti Azzera: visibili, coerenti con la palette e chiaramente distinguibili */
+.btn-danger.btn-ghost{
+  background:#a6535b;
+  color:#fff;
+  border:1px solid #a6535b;
+  box-shadow:0 2px 7px rgba(132,62,70,.16);
+}
+.btn-danger.btn-ghost:hover{
+  background:#843e46;
+  border-color:#843e46;
+  color:#fff;
+}
 </style></head>
 <body>
 
