@@ -409,6 +409,14 @@ td.rowlabel span[style*="#16788f"]{letter-spacing:.05px}
   background:#c9e3e9;
   border:1px solid #65a8b7;
 }
+</style><style id="chatgpt-build62">
+/* Build 62 — sostituzione emoji con micro-iconografia CSS */
+.tabbar button{position:relative}
+.tabbar button[data-tab="lando"]::before{content:"";display:inline-block;width:9px;height:9px;border:2px solid currentColor;border-radius:3px;margin-right:8px;vertical-align:1px}
+.tabbar button[data-tab="generici"]::before{content:"";display:inline-block;width:10px;height:8px;border:2px solid currentColor;border-radius:2px;margin-right:8px;vertical-align:1px}
+.tabbar button[data-tab="coop"]::before{content:"";display:inline-block;width:10px;height:10px;border:2px solid currentColor;border-radius:50%;margin-right:8px;vertical-align:0}
+.tabbar button[data-tab="totali"]::before{content:"";display:inline-block;width:11px;height:11px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;margin-right:8px;vertical-align:-1px}
+.tabbar button[data-tab="inventario"]::before{content:"";display:inline-block;width:8px;height:11px;border:2px solid currentColor;border-radius:5px 5px 3px 3px;margin-right:8px;vertical-align:-1px}
 </style></head>
 <body>
 
@@ -418,7 +426,7 @@ td.rowlabel span[style*="#16788f"]{letter-spacing:.05px}
       <h1>Gestione Ordini Gelato <span style="font-size:0.55em; color:rgba(255,255,255,0.6); font-weight:400;">build 58</span></h1>
       <div class="sub" id="dateLabel"></div>
     </div>
-    <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;">⛶</button>
+    <button id="btnFullscreen" title="Schermo intero" style="background:rgba(255,255,255,0.15); border:none; color:#fff; border-radius:10px; padding:9px 12px; font-size:1.1rem; cursor:pointer; flex-shrink:0;"></button>
   </div>
 </header>
 
@@ -1349,16 +1357,16 @@ if (!ripristinato) {
 } else {
   // Esiste già un salvataggio di oggi (anche vuoto, es. dopo "Azzera giornata"):
   // lo rispettiamo così com'è, senza reintrodurre punti Lando non richiesti.
-  mostraToast('📂 Ripristinati i dati della sessione precedente');
+  mostraToast(' Ripristinati i dati della sessione precedente');
 }
 
 // ---------- TAB BAR ----------
 const TABS = [
-  {id:'lando', label:'🚚 Lando'},
-  {id:'generici', label:'📦 Generici'},
-  {id:'coop', label:'🛒 Coop Alleanza e Consumatori'},
-  {id:'totali', label:'📊 Totali'},
-  {id:'inventario', label:'🧊 Inventario'},
+  {id:'lando', label:'Lando'},
+  {id:'generici', label:'Generici'},
+  {id:'coop', label:'Coop Alleanza e Consumatori'},
+  {id:'totali', label:'Totali'},
+  {id:'inventario', label:'Inventario'},
 ];
 
 function renderTabs(){
@@ -1431,8 +1439,8 @@ function renderLandoView(){
     <h2>F.lli Lando — ${fmtDataConsegnaScheda('lando')}</h2>
     <div class="note-box">Punti vendita previsti oggi popolati in automatico. Puoi aggiungerne altri o caricare un secondo ordine (scorta) per Conselve/Cittadella.</div>
     <div class="row" style="margin-bottom:10px;">
-      <button class="btn btn-primary" id="btnCaricaPdfLando">📄 Carica PDF ordine</button>
-      <button class="btn btn-secondary" id="btnInserimentoManualeLando">✏️ Inserisci manualmente</button>
+      <button class="btn btn-primary" id="btnCaricaPdfLando"> Carica PDF ordine</button>
+      <button class="btn btn-secondary" id="btnInserimentoManualeLando"> Inserisci manualmente</button>
       <select id="selectAggiungiLando">
         <option value="">+ Aggiungi punto vendita…</option>
         ${PUNTI_LANDO.filter(p => !clienti.find(c=>c.nome===p)).map(p=>`<option value="${p}">${p}</option>`).join('')}
@@ -1441,7 +1449,7 @@ function renderLandoView(){
   </div>`;
 
   if (colonne.length === 0) {
-    html += `<div class="card"><div class="empty-state"><div class="icon">🚚</div>Nessun punto vendita Lando ancora. Carica un PDF o aggiungilo manualmente.</div></div>`;
+    html += `<div class="card"><div class="empty-state"><div class="icon"></div>Nessun punto vendita Lando ancora. Carica un PDF o aggiungilo manualmente.</div></div>`;
     return html;
   }
 
@@ -1482,7 +1490,7 @@ function renderLandoView(){
 
   html += `<div class="card"><h2 style="font-size:0.9rem;">Gestione colonne</h2><div class="client-list">`;
   colonne.forEach(col => {
-    html += `<span class="pill">${col.nome}${col.numOrdine?` (${col.numOrdine})`:''} <span class="x" style="color:var(--pistacchio-dark);" data-modifica-lando="${col.clienteId}|${col.ordineIdx}">✏️</span> <span class="x" data-rimuovi-lando="${col.clienteId}|${col.ordineIdx}">✕</span></span>`;
+    html += `<span class="pill">${col.nome}${col.numOrdine?` (${col.numOrdine})`:''} <span class="x" style="color:var(--pistacchio-dark);" data-modifica-lando="${col.clienteId}|${col.ordineIdx}"></span> <span class="x" data-rimuovi-lando="${col.clienteId}|${col.ordineIdx}"></span></span>`;
   });
   html += `</div></div>`;
 
@@ -1506,15 +1514,15 @@ function renderGenericiView(){
   <div class="card">
     <h2>Ordini Generici — ${fmtDataConsegnaScheda('generici')}</h2>
     <div class="row" style="margin-bottom:10px;">
-      <button class="btn btn-primary" id="btnCaricaPdfGenerico">📄 Carica PDF ordine</button>
-      <button class="btn btn-primary" id="btnIncollaTestoBB">📋 Incolla ordini da WhatsApp</button>
-      <button class="btn btn-secondary" id="btnInserimentoManualeGenerico">✏️ Inserisci manualmente</button>
+      <button class="btn btn-primary" id="btnCaricaPdfGenerico"> Carica PDF ordine</button>
+      <button class="btn btn-primary" id="btnIncollaTestoBB"> Incolla ordini da WhatsApp</button>
+      <button class="btn btn-secondary" id="btnInserimentoManualeGenerico"> Inserisci manualmente</button>
       <select id="selectAggiungiGenerico">
         <option value="">+ Aggiungi cliente…</option>
-        <optgroup label="📋 Usa testo app (incolla ordine)">
+        <optgroup label=" Usa testo app (incolla ordine)">
           ${CLIENTI_APP_TESTO_BB.filter(p=>!clienti.find(c=>c.nome===p)).map(p=>`<option value="${p}">${p}</option>`).join('')}
         </optgroup>
-        <optgroup label="✏️ Inserimento manuale">
+        <optgroup label=" Inserimento manuale">
           ${CLIENTI_MANUALI.filter(p=>!clienti.find(c=>c.nome===p)).map(p=>`<option value="${p}">${p}</option>`).join('')}
         </optgroup>
         <option value="__custom__">Altro (scrivi nome)…</option>
@@ -1523,13 +1531,13 @@ function renderGenericiView(){
   </div>`;
 
   if (clienti.length === 0) {
-    html += `<div class="card"><div class="empty-state"><div class="icon">📦</div>Nessun cliente generico inserito oggi.</div></div>`;
+    html += `<div class="card"><div class="empty-state"><div class="icon"></div>Nessun cliente generico inserito oggi.</div></div>`;
     return html;
   }
 
   html += `<div class="card"><div class="tablewrap"><table><thead><tr>
     <th class="rowlabel">Referenza</th>
-    ${clienti.map(c => `<th class="snap-col"><span data-modifica-generico="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} ✏️</span></th>`).join('')}
+    ${clienti.map(c => `<th class="snap-col"><span data-modifica-generico="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} </span></th>`).join('')}
     <th class="tot">TOT</th>
   </tr></thead><tbody>`;
 
@@ -1561,7 +1569,7 @@ function renderGenericiView(){
 
   html += `<div class="card"><h2 style="font-size:0.9rem;">Gestione clienti</h2><div class="client-list">`;
   clienti.forEach(c => {
-    html += `<span class="pill">${c.nome} <span class="x" data-rimuovi-generico="${c.id}">✕</span></span>`;
+    html += `<span class="pill">${c.nome} <span class="x" data-rimuovi-generico="${c.id}"></span></span>`;
   });
   html += `</div></div>`;
 
@@ -1583,8 +1591,8 @@ function renderCoopView(){
     <h2>Coop Alleanza e Consumatori — ${fmtDataConsegnaScheda('coop')}</h2>
     <div class="note-box">Nessun calendario fisso: aggiungi ogni cliente quando arriva il suo ordine.</div>
     <div class="row">
-      <button class="btn btn-primary" id="btnCaricaPdfCoop">📄 Carica PDF ordine Coop</button>
-      <button class="btn btn-secondary" id="btnAggiungiCoopManuale">✏️ Inserisci manualmente</button>
+      <button class="btn btn-primary" id="btnCaricaPdfCoop"> Carica PDF ordine Coop</button>
+      <button class="btn btn-secondary" id="btnAggiungiCoopManuale"> Inserisci manualmente</button>
       <select id="selectAggiungiCoopConsumatori">
         <option value="">+ Coop Consumatori…</option>
         ${CLIENTI_COOP_CONSUMATORI.filter(p=>!clienti.find(c=>c.nome===p)).map(p=>`<option value="${p}">${p}</option>`).join('')}
@@ -1593,13 +1601,13 @@ function renderCoopView(){
   </div>`;
 
   if (clienti.length === 0) {
-    html += `<div class="card"><div class="empty-state"><div class="icon">🛒</div>Nessun ordine Coop inserito oggi.</div></div>`;
+    html += `<div class="card"><div class="empty-state"><div class="icon"></div>Nessun ordine Coop inserito oggi.</div></div>`;
     return html;
   }
 
   html += `<div class="card"><div class="tablewrap"><table><thead><tr>
     <th class="rowlabel">Referenza</th>
-    ${clienti.map(c => `<th class="snap-col"><span data-modifica-coop="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} ✏️</span>${c.numOrdine?`<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${c.numOrdine}</div>`:''}</th>`).join('')}
+    ${clienti.map(c => `<th class="snap-col"><span data-modifica-coop="${c.id}" style="cursor:pointer; text-decoration:underline dotted;" title="Tocca per modificare">${formatNomeClienteHeader(c.nome)} </span>${c.numOrdine?`<div style="font-size:0.65rem;font-weight:400;opacity:0.85;">ord. ${c.numOrdine}</div>`:''}</th>`).join('')}
     <th class="tot">TOT</th>
   </tr></thead><tbody>`;
 
@@ -1629,7 +1637,7 @@ function renderCoopView(){
 
   html += `<div class="card"><h2 style="font-size:0.9rem;">Gestione clienti</h2><div class="client-list">`;
   clienti.forEach(c => {
-    html += `<span class="pill">${c.nome} <span class="x" data-rimuovi-coop="${c.id}">✕</span></span>`;
+    html += `<span class="pill">${c.nome} <span class="x" data-rimuovi-coop="${c.id}"></span></span>`;
   });
   html += `</div></div>`;
 
@@ -1666,8 +1674,8 @@ function renderTotaliView(){
   html += `</tbody></table></div></div>`;
 
   html += `<div class="card"><div class="row">
-    <button class="btn btn-primary" id="btnEsportaExcel">📥 Esporta in Excel</button>
-    <button class="btn btn-danger btn-ghost" id="btnResetGiorno">🗑️ Azzera giornata</button>
+    <button class="btn btn-primary" id="btnEsportaExcel"> Esporta in Excel</button>
+    <button class="btn btn-danger btn-ghost" id="btnResetGiorno"> Azzera giornata</button>
   </div></div>`;
 
   return html;
@@ -1677,11 +1685,11 @@ function renderTotaliView(){
 function renderInventarioView(){
   const sotto = State.inventarioSotto;
   let html = `<div class="tabbar" id="subtabbarInventario" style="margin-bottom:10px;">
-    <button data-subtab="residuo" class="${sotto==='residuo'?'active':''}">🚛 Residuo Giacenze Autocarro</button>
-    <button data-subtab="controllo" class="${sotto==='controllo'?'active':''}">🔍 Residuo Giacenze DDT Fine Giornata</button>
-    <button data-subtab="match" class="${sotto==='match'?'active':''}">⚖️ Match Giacenze Autocarro e DDT</button>
-    <button data-subtab="reintegro" class="${sotto==='reintegro'?'active':''}">📦 Carico Reintegro</button>
-    <button data-subtab="totali" class="${sotto==='totali'?'active':''}">📊 Totali &amp; Disponibilità</button>
+    <button data-subtab="residuo" class="${sotto==='residuo'?'active':''}"> Residuo Giacenze Autocarro</button>
+    <button data-subtab="controllo" class="${sotto==='controllo'?'active':''}"> Residuo Giacenze DDT Fine Giornata</button>
+    <button data-subtab="match" class="${sotto==='match'?'active':''}"> Match Giacenze Autocarro e DDT</button>
+    <button data-subtab="reintegro" class="${sotto==='reintegro'?'active':''}"> Carico Reintegro</button>
+    <button data-subtab="totali" class="${sotto==='totali'?'active':''}">Totali &amp; Disponibilità</button>
   </div>`;
 
   if (sotto === 'residuo') {
@@ -1692,10 +1700,10 @@ function renderInventarioView(){
     html += `<div class="card"><h2>Residuo Giacenze Autocarro</h2>
       <div class="note-box">Giacenza fisica a bordo autocarro (a fine giro o inizio giornata), in <b>fardelli</b> per referenza.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
-        <button class="btn btn-primary" data-incolla-inventario="residuo">📋 Incolla messaggio (riserva)</button>
-        <button class="btn btn-secondary" id="btnStampaGiacenze">🖨️ Stampa PDF Giacenze</button>
-        <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuo">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
-        <button class="btn btn-danger btn-ghost" data-azzera-inventario="residuo">🗑️ Azzera</button>
+        <button class="btn btn-primary" data-incolla-inventario="residuo"> Incolla messaggio (riserva)</button>
+        <button class="btn btn-secondary" id="btnStampaGiacenze"> Stampa PDF Giacenze</button>
+        <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuo">${usaTastierinoGestione ? ' Tastierino: ON' : ' Tastierino iPad'}</button>
+        <button class="btn btn-danger btn-ghost" data-azzera-inventario="residuo"> Azzera</button>
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Fardelli</th></tr></thead><tbody>`;
     let catCorrente = null;
@@ -1722,8 +1730,8 @@ function renderInventarioView(){
     html += `<div class="card"><h2>Carico Reintegro</h2>
       <div class="note-box">Merce caricata dal magazzino, in <b>fardelli</b> — stessa unità con cui inserisci gli ordini clienti. Ordine per codice crescente, come sul DDT cartaceo (il 4193 è in fondo perché stagionale).</div>
       <div class="row" style="margin:10px 0; gap:8px;">
-        <button class="btn btn-primary" data-incolla-inventario="reintegro">📋 Incolla messaggio (riserva)</button>
-        <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="reintegro">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
+        <button class="btn btn-primary" data-incolla-inventario="reintegro"> Incolla messaggio (riserva)</button>
+        <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="reintegro">${usaTastierinoGestione ? ' Tastierino: ON' : ' Tastierino iPad'}</button>
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Fardelli</th></tr></thead><tbody>`;
     for (const cod of codiciDDT) {
@@ -1739,8 +1747,8 @@ function renderInventarioView(){
     const disp = State.disponibilitaPerReferenza();
     const numRotture = Object.values(disp).filter(d => d < 0).length;
     const bannerRotture = numRotture > 0
-      ? `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numRotture} referenz${numRotture===1?'a':'e'} in rottura di stock</div>`
-      : `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;">✓ Nessuna rottura di stock al momento</div>`;
+      ? `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;"> ${numRotture} referenz${numRotture===1?'a':'e'} in rottura di stock</div>`
+      : `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;"> Nessuna rottura di stock al momento</div>`;
     html += `<div class="card"><h2>Totali &amp; Disponibilità</h2>
       <div class="note-box">Residuo autocarro + carico reintegro − quanto già impegnato negli ordini clienti caricati oggi. Tutti i valori qui sotto sono in fardelli. Un valore negativo o a zero segnala una possibile rottura di stock su quella referenza.</div>
       ${bannerRotture}
@@ -1759,7 +1767,7 @@ function renderInventarioView(){
       if (residuo === 0 && reintegro === 0 && impegnato === 0) continue;
       const inRottura = d < 0;
       const classeDisp = inRottura ? 'style="color:#c0392b; font-weight:800;"' : (d === 0 ? 'style="color:#b8860b; font-weight:800;"' : 'class="qty-cell"');
-      const bollino = inRottura ? '🔴 ' : '';
+      const bollino = inRottura ? ' ' : '';
       const stileRiga = inRottura ? ' style="background:#ffe600;"' : '';
       const stileLabel = inRottura ? ' style="background:#ffe600 !important;"' : '';
       html += `<tr${stileRiga}><td class="rowlabel"${stileLabel}>${bollino}${nomeProdottoTag(cod)}</td><td>${residuo||'·'}</td><td>${reintegro||'·'}</td><td>${impegnato||'·'}</td><td class="tot" ${classeDisp}>${d}</td></tr>`;
@@ -1776,8 +1784,8 @@ function renderInventarioView(){
     html += `<div class="card"><h2>Residuo Giacenze DDT Fine Giornata</h2>
       <div class="note-box">Giacenza risultante dal DDT/software TVCE, in <b>fardelli</b> — la ricopi a mano dal documento cartaceo o dal video del device.</div>
       <div class="row" style="margin:10px 0; gap:8px;">
-        <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuoDDT">${usaTastierinoGestione ? '🔢 Tastierino: ON' : '🔢 Tastierino iPad'}</button>
-        <button class="btn btn-danger btn-ghost" data-azzera-inventario="residuoDDT">🗑️ Azzera</button>
+        <button class="btn btn-secondary" id="btnToggleTastierinoGestione" data-tipo-tastierino="residuoDDT">${usaTastierinoGestione ? ' Tastierino: ON' : ' Tastierino iPad'}</button>
+        <button class="btn btn-danger btn-ghost" data-azzera-inventario="residuoDDT"> Azzera</button>
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Codice</th><th class="tot">Fardelli</th></tr></thead><tbody>`;
     let catCorrente = null;
@@ -1827,35 +1835,35 @@ function renderInventarioView(){
         // Giacenza reale sull'autocarro superiore al DDT: eccesso, nessuna rottura di stock, solo da sistemare a inventario
         stileRigaDiff = ' style="background:#dcf5df;"';
         stileLabelDiff = ' style="background:#dcf5df !important;"';
-        bollino = '🟢 ';
+        bollino = ' ';
         classeDiff = 'style="color:#1e7e34; font-weight:800;"';
       } else if (diff < 0) {
         // Giacenza reale sull'autocarro inferiore al DDT: probabile rottura di stock
         stileRigaDiff = ' style="background:#ffe600; color:#c0392b; font-weight:700;"';
         stileLabelDiff = ' style="background:#ffe600 !important; color:#c0392b !important; font-weight:700;"';
-        bollino = '🔴 ';
+        bollino = ' ';
         classeDiff = 'style="color:#c0392b; font-weight:800;"';
       }
       righeDiff += `<tr${stileRigaDiff}><td class="rowlabel"${stileLabelDiff}>${bollino}${nomeProdottoTag(cod)}</td><td>${a||'·'}</td><td>${b||'·'}</td><td class="tot" ${classeDiff}>${diff>0?'+':''}${diff}</td></tr>`;
     }
     let bannerDiff;
     if (numRottura === 0 && numEccesso === 0) {
-      bannerDiff = `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;">✓ Nessuna differenza rilevata</div>`;
+      bannerDiff = `<div class="note-box" style="border-color:#2e7d32; background:#eaf6ea; color:#2e7d32; font-weight:700;"> Nessuna differenza rilevata</div>`;
     } else {
       bannerDiff = '';
       if (numRottura > 0) {
-        bannerDiff += `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;">🔴 ${numRottura} referenz${numRottura===1?'a':'e'} con errore di scarico in eccesso della merce al cliente (autocarro inferiore al DDT)</div>`;
+        bannerDiff += `<div class="note-box" style="border-color:#c0392b; background:#fdecea; color:#c0392b; font-weight:700;"> ${numRottura} referenz${numRottura===1?'a':'e'} con errore di scarico in eccesso della merce al cliente (autocarro inferiore al DDT)</div>`;
       }
       if (numEccesso > 0) {
-        bannerDiff += `<div class="note-box" style="border-color:#1e7e34; background:#eaf6ea; color:#1e7e34; font-weight:700; margin-top:8px;">🟢 ${numEccesso} referenz${numEccesso===1?'a':'e'} con giacenza autocarro in eccesso (da sistemare con l'inventario di fine mese)</div>`;
+        bannerDiff += `<div class="note-box" style="border-color:#1e7e34; background:#eaf6ea; color:#1e7e34; font-weight:700; margin-top:8px;"> ${numEccesso} referenz${numEccesso===1?'a':'e'} con giacenza autocarro in eccesso (da sistemare con l'inventario di fine mese)</div>`;
       }
     }
     html += `<div class="card"><h2>Match Giacenze Autocarro e DDT</h2>
-      <div class="note-box">Giacenze Autocarro − Giacenze DDT Fine Giornata per referenza.<br><br>🟢 verde = più fardelli sull'autocarro rispetto al DDT (eccesso, da sistemare con l'inventario di fine mese).<br>🔴 rosso = meno fardelli sull'autocarro rispetto al DDT, errore di scarico in eccesso della merce al cliente.</div>
+      <div class="note-box">Giacenze Autocarro − Giacenze DDT Fine Giornata per referenza.<br><br> verde = più fardelli sull'autocarro rispetto al DDT (eccesso, da sistemare con l'inventario di fine mese).<br> rosso = meno fardelli sull'autocarro rispetto al DDT, errore di scarico in eccesso della merce al cliente.</div>
       ${bannerDiff}
       <div class="row" style="margin:10px 0; gap:8px;">
-        <button class="btn btn-secondary" id="btnStampaControlloGiacenze">🖨️ Stampa PDF Controllo Giacenze</button>
-        <button class="btn btn-danger btn-ghost" data-azzera-inventario="match">🗑️ Azzera</button>
+        <button class="btn btn-secondary" id="btnStampaControlloGiacenze"> Stampa PDF Controllo Giacenze</button>
+        <button class="btn btn-danger btn-ghost" data-azzera-inventario="match"> Azzera</button>
       </div>
       <div class="tablewrap"><table><thead><tr><th class="rowlabel">Referenza</th><th>Giacenze Autocarro</th><th>Giacenze DDT Fine Giornata</th><th class="tot">Differenza</th></tr></thead><tbody>${righeDiff || '<tr><td colspan="4" style="text-align:center; color:var(--grigio); padding:16px;">Nessun dato inserito</td></tr>'}</tbody>`;
     if (righeDiff) {
@@ -2038,7 +2046,7 @@ function apriUploadPDF(gruppo){
       <h3>Carica PDF ordine</h3>
       <div class="modal-sub">Seleziona uno o più file PDF. Verranno letti automaticamente.</div>
       <label class="dropzone" id="dropzonePdf">
-        📄<br>Tocca per scegliere il PDF<br>
+        <br>Tocca per scegliere il PDF<br>
         <input type="file" id="inputPdf" accept="application/pdf" multiple>
       </label>
       <div id="pdfStatusArea" style="margin-top:14px;"></div>
@@ -2061,7 +2069,7 @@ function apriUploadPDF(gruppo){
       try {
         const risultato = await elaboraPDF(file);
         if (risultato.formato === 'sconosciuto' || risultato.righe.length === 0) {
-          statusArea.innerHTML += `<div class="note-box" style="border-color:var(--amarena);">⚠️ "${file.name}": formato non riconosciuto o nessuna riga trovata. Inseribile manualmente.</div>`;
+          statusArea.innerHTML += `<div class="note-box" style="border-color:var(--amarena);"> "${file.name}": formato non riconosciuto o nessuna riga trovata. Inseribile manualmente.</div>`;
           continue;
         }
         // Instrada sempre in base al formato riconosciuto, non al tab da cui è stato
@@ -2075,7 +2083,7 @@ function apriUploadPDF(gruppo){
         mostraAnteprimaConferma(risultato, gruppoEffettivo);
         return; // mostriamo un file alla volta nell'anteprima per chiarezza
       } catch (err) {
-        statusArea.innerHTML += `<div class="note-box" style="border-color:var(--amarena);">⚠️ Errore lettura "${file.name}": ${err.message}</div>`;
+        statusArea.innerHTML += `<div class="note-box" style="border-color:var(--amarena);"> Errore lettura "${file.name}": ${err.message}</div>`;
       }
     }
   });
@@ -2122,13 +2130,13 @@ function mostraAnteprimaConferma(risultato, gruppo){
             <div>${r.nome}${r.nome==='???'?' <span class="warn">codice non in catalogo</span>':''}</div>
             <div class="codice">${r.codice}</div>
             <input type="number" min="0" value="${r.qta}" data-qta-idx="${i}">
-            <div class="del-row" data-elimina-riga="${i}">✕</div>
+            <div class="del-row" data-elimina-riga="${i}"></div>
           </div>
         `).join('')}
       </div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="btnAnnullaPreview" style="flex:1;">Annulla</button>
-        <button class="btn btn-primary" id="btnConfermaPreview" style="flex:2;">✓ Conferma e inserisci</button>
+        <button class="btn btn-primary" id="btnConfermaPreview" style="flex:2;"> Conferma e inserisci</button>
       </div>
     </div>
   </div>`;
@@ -2184,7 +2192,7 @@ function mostraAnteprimaConferma(risultato, gruppo){
     chiudiModal();
     renderTabs();
     renderMain();
-    mostraToast('✓ Ordine inserito correttamente');
+    mostraToast(' Ordine inserito correttamente');
   });
 }
 
@@ -2196,7 +2204,7 @@ function apriIncollaTestoBB(nomePrecompilato){
     <div class="modal">
       <h3>Incolla ordine (Bar Bianchi / Conad)</h3>
       <div class="modal-sub">Copia il messaggio dall'app BB o Conad (o da Note/WhatsApp dopo averlo copiato) e incollalo qui sotto. Per Conad il nome cliente si compila da solo.</div>
-      <textarea id="testoIncollaBB" placeholder="🧊 Ordine Gelato Lattebusche..." style="width:100%; min-height:200px; padding:10px; border:1.5px solid var(--linea); border-radius:10px; font-family:inherit; font-size:0.9rem;"></textarea>
+      <textarea id="testoIncollaBB" placeholder=" Ordine Gelato Lattebusche..." style="width:100%; min-height:200px; padding:10px; border:1.5px solid var(--linea); border-radius:10px; font-family:inherit; font-size:0.9rem;"></textarea>
       <div class="row" style="margin-top:10px;">
         <input type="text" id="nomeBarBB" placeholder="Nome del bar (es. BB Granmichele)" value="${nomePrecompilato || ''}" style="flex:1;">
       </div>
@@ -2213,17 +2221,17 @@ function apriIncollaTestoBB(nomePrecompilato){
   document.getElementById('btnElaboraIncolla').addEventListener('click', () => {
     const testo = document.getElementById('testoIncollaBB').value.trim();
     let nomeBar = document.getElementById('nomeBarBB').value.trim();
-    if (!testo) { mostraToast('⚠️ Incolla il testo dell\'ordine'); return; }
+    if (!testo) { mostraToast(' Incolla il testo dell\'ordine'); return; }
 
     const risultato = elaboraTestoIncollato(testo);
     if (risultato.formato !== 'bb_app' || risultato.righe.length === 0) {
-      mostraToast('⚠️ Testo non riconosciuto. Verifica di averlo copiato per intero.');
+      mostraToast(' Testo non riconosciuto. Verifica di averlo copiato per intero.');
       return;
     }
     if (!nomeBar) {
       nomeBar = risultato.cliente || ''; // 'Conad' se rilevato automaticamente
     }
-    if (!nomeBar) { mostraToast('⚠️ Inserisci il nome del bar'); return; }
+    if (!nomeBar) { mostraToast(' Inserisci il nome del bar'); return; }
     risultato.cliente = nomeBar;
     mostraAnteprimaConferma(risultato, 'generici');
   });
@@ -2251,7 +2259,7 @@ function stampaPdfGiacenze(){
     righe += `<tr><td>${prod.nome}</td><td>${cod}</td><td class="q">${q}</td></tr>`;
     totale += q;
   }
-  if (!righe) { mostraToast('⚠️ Nessuna giacenza registrata da stampare'); return; }
+  if (!righe) { mostraToast(' Nessuna giacenza registrata da stampare'); return; }
 
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
@@ -2268,7 +2276,7 @@ function stampaPdfGiacenze(){
       .tot{margin-top:14px; text-align:right; font-weight:800; font-size:15px;}
       @media print { body{padding:0;} }
     </style></head><body>
-    <h1>🚛 Giacenze DDT</h1>
+    <h1> Giacenze DDT</h1>
     <div class="data">${oggi}</div>
     <table><thead><tr><th>Referenza</th><th>Codice</th><th>Quantità</th></tr></thead><tbody>${righe}</tbody></table>
     <div class="tot">Totale: ${totale}</div>
@@ -2300,10 +2308,10 @@ function stampaPdfControlloGiacenze(){
     totA += a; totD += d; totDiff += diff;
     const classeRiga = diff > 0 ? ' class="rigaeccesso"' : (diff < 0 ? ' class="rigarottura"' : '');
     const classeDiff = diff > 0 ? ' class="diffpos"' : (diff < 0 ? ' class="diffneg"' : '');
-    const bollino = diff > 0 ? '🟢 ' : (diff < 0 ? '🔴 ' : '');
+    const bollino = diff > 0 ? ' ' : (diff < 0 ? ' ' : '');
     righe += `<tr${classeRiga}><td>${bollino}${prod.nome}</td><td>${cod}</td><td class="q">${a||'·'}</td><td class="q">${d||'·'}</td><td class="q"${classeDiff}>${diff>0?'+':''}${diff}</td></tr>`;
   }
-  if (!haRighe) { mostraToast('⚠️ Nessun dato registrato da stampare'); return; }
+  if (!haRighe) { mostraToast(' Nessun dato registrato da stampare'); return; }
 
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8">
@@ -2329,7 +2337,7 @@ function stampaPdfControlloGiacenze(){
       .tot{margin-top:14px; text-align:right; font-weight:800; font-size:15px;}
       @media print { body{padding:0;} }
     </style></head><body>
-    <h1>⚖️ Match Giacenze Autocarro e DDT</h1>
+    <h1> Match Giacenze Autocarro e DDT</h1>
     <div class="data">${oggi}</div>
     <table><thead><tr><th>Referenza</th><th>Codice</th><th>Giacenze Autocarro</th><th>Giacenze DDT Fine Giornata</th><th>Differenza</th></tr></thead><tbody>${righe}</tbody></table>
     <div class="tot">Totale Giacenze Autocarro: ${totA} — Totale Giacenze DDT Fine Giornata: ${totD} — Differenza: ${totDiff>0?'+':''}${totDiff}</div>
@@ -2346,7 +2354,7 @@ function apriIncollaInventario(tipo){
     <div class="modal">
       <h3>Incolla ${titolo}</h3>
       <div class="modal-sub">Copia il messaggio dall'app Inventario (stesso formato dell'app ordini) e incollalo qui sotto. Sostituisce i valori già presenti in questa scheda.</div>
-      <textarea id="testoIncollaInv" placeholder="🧊 Ordine Gelato Lattebusche..." style="width:100%; min-height:200px; padding:10px; border:1.5px solid var(--linea); border-radius:10px; font-family:inherit; font-size:0.9rem;"></textarea>
+      <textarea id="testoIncollaInv" placeholder=" Ordine Gelato Lattebusche..." style="width:100%; min-height:200px; padding:10px; border:1.5px solid var(--linea); border-radius:10px; font-family:inherit; font-size:0.9rem;"></textarea>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="btnAnnullaIncollaInv" style="flex:1;">Annulla</button>
         <button class="btn btn-primary" id="btnElaboraIncollaInv" style="flex:2;">Leggi e sostituisci</button>
@@ -2359,11 +2367,11 @@ function apriIncollaInventario(tipo){
 
   document.getElementById('btnElaboraIncollaInv').addEventListener('click', () => {
     const testo = document.getElementById('testoIncollaInv').value.trim();
-    if (!testo) { mostraToast('⚠️ Incolla il testo'); return; }
+    if (!testo) { mostraToast(' Incolla il testo'); return; }
 
     const risultato = elaboraTestoIncollato(testo);
     if (risultato.formato !== 'bb_app' || risultato.righe.length === 0) {
-      mostraToast('⚠️ Testo non riconosciuto. Verifica di averlo copiato per intero.');
+      mostraToast(' Testo non riconosciuto. Verifica di averlo copiato per intero.');
       return;
     }
     const righeMap = {};
@@ -2374,7 +2382,7 @@ function apriIncollaInventario(tipo){
     State.impostaInventario(tipo, righeMap);
     chiudiModal();
     renderMain();
-    mostraToast(`✓ ${titolo} aggiornato (${risultato.righe.length} referenze)`);
+    mostraToast(` ${titolo} aggiornato (${risultato.righe.length} referenze)`);
   });
 }
 
@@ -2436,7 +2444,7 @@ function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti, editCo
       <div id="manualeRows">${righeHtml}</div>
       <div class="modal-actions">
         <button class="btn btn-secondary" id="btnAnnullaManuale" style="flex:1;">Annulla</button>
-        <button class="btn btn-primary" id="btnConfermaManuale" style="flex:2;">✓ ${editContextLando ? 'Salva modifiche' : 'Salva ordine'}</button>
+        <button class="btn btn-primary" id="btnConfermaManuale" style="flex:2;"> ${editContextLando ? 'Salva modifiche' : 'Salva ordine'}</button>
       </div>
     </div>
   </div>`;
@@ -2459,7 +2467,7 @@ function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti, editCo
     });
 
     if (Object.keys(righeMap).length === 0) {
-      mostraToast('⚠️ Nessuna quantità inserita');
+      mostraToast(' Nessuna quantità inserita');
       return;
     }
 
@@ -2469,18 +2477,18 @@ function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti, editCo
         State.modificaRigheLandoSlot(editContextLando.clienteId, editContextLando.idx, righeMap, etichetta);
       } else {
         const nome = document.getElementById('manualeNomeLando').value;
-        if (!nome) { mostraToast('⚠️ Seleziona il punto vendita Lando'); return; }
+        if (!nome) { mostraToast(' Seleziona il punto vendita Lando'); return; }
         State.aggiungiOrdineLando(nome, null, null, righeMap, etichetta);
       }
       State.gruppoAttivo = 'lando';
     } else if (gruppo === 'coop') {
       const nome = document.getElementById('manualeNomeCliente').value.trim();
-      if (!nome) { mostraToast('⚠️ Inserisci il nome del cliente'); return; }
+      if (!nome) { mostraToast(' Inserisci il nome del cliente'); return; }
       State.aggiungiClienteCoop(nome, null, null, righeMap);
       State.gruppoAttivo = 'coop';
     } else if (gruppo === 'generici') {
       const nome = document.getElementById('manualeNomeCliente').value.trim();
-      if (!nome) { mostraToast('⚠️ Inserisci il nome del cliente'); return; }
+      if (!nome) { mostraToast(' Inserisci il nome del cliente'); return; }
       const c = State.aggiungiClienteGenerico(nome);
       c.righe = righeMap;
       State.gruppoAttivo = 'generici';
@@ -2488,7 +2496,7 @@ function apriInserimentoManuale(gruppo, nomePrecompilato, righeEsistenti, editCo
     chiudiModal();
     renderTabs();
     renderMain();
-    mostraToast('✓ Ordine inserito manualmente');
+    mostraToast(' Ordine inserito manualmente');
   });
 }
 
@@ -2560,7 +2568,7 @@ function generaExcel(){
 
   const dataStr = State.data.toISOString().slice(0,10);
   XLSX.writeFile(wb, `Ordini_Gelato_${dataStr}.xlsx`);
-  mostraToast('✓ Excel esportato');
+  mostraToast(' Excel esportato');
 }
 
 // ---------- FULLSCREEN (utile su iPad/desktop per usare tutto lo schermo) ----------
