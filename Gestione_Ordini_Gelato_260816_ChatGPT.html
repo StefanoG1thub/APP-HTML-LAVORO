@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ordini Gelato">
+<title>Gestione Ordini Gelato — V2</title>
+<style>
+:root{--green:#214f3b;--green2:#2f6b50;--cream:#f7f5ef}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--cream);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,Segoe UI,Roboto,sans-serif}body{overflow:hidden}#appFrame{display:block;width:100%;height:100%;border:0;background:var(--cream)}
+</style>
+</head>
+<body>
+<iframe id="appFrame" title="Gestione Ordini Gelato"></iframe>
+<script>
+const frame=document.getElementById('appFrame');
+frame.src='Gestione_Ordini_Gelato_260816.html';
+frame.addEventListener('load',()=>{
+ const d=frame.contentDocument;if(!d)return;
+ const s=d.createElement('style');
+ s.textContent=`
+:root{--ink:#18352a!important;--panna:#f7f5ef!important;--panna-card:#fff!important;--pistacchio:#3d7b5d!important;--pistacchio-dark:#214f3b!important;--amarena:#a44750!important;--amarena-dark:#84343c!important;--caramello:#c58a45!important;--linea:#dfe5df!important;--grigio:#718078!important;--ombra:0 6px 22px rgba(27,52,40,.09)!important;--radius:16px!important}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,"Segoe UI",Roboto,sans-serif!important;background:#f7f5ef!important;color:#18352a!important}
+header{background:linear-gradient(135deg,#214f3b 0%,#2c634b 100%)!important;padding:18px 22px 16px!important;box-shadow:0 4px 18px rgba(24,53,42,.16)!important}
+header h1{font-size:1.25rem!important;letter-spacing:.2px!important;text-transform:uppercase!important}header .sub{font-size:.8rem!important;opacity:.78!important;margin-top:4px!important}header button{background:rgba(255,255,255,.13)!important;border:1px solid rgba(255,255,255,.18)!important;border-radius:12px!important}
+.tabbar{gap:8px!important;padding:10px 14px 0!important;background:#214f3b!important;border-bottom:1px solid rgba(255,255,255,.08)!important}.tabbar button{background:rgba(255,255,255,.09)!important;color:rgba(255,255,255,.88)!important;border:1px solid rgba(255,255,255,.06)!important;border-radius:12px 12px 0 0!important;padding:10px 17px!important;font-weight:650!important}.tabbar button.active{background:#f7f5ef!important;color:#214f3b!important;border-color:#f7f5ef!important}
+main{padding:20px 18px 36px!important;max-width:1450px!important}.card{background:#fff!important;border:1px solid #e7ebe7!important;border-radius:16px!important;box-shadow:var(--ombra)!important;padding:20px!important;margin-bottom:16px!important}.card h2{color:#214f3b!important;font-size:1.08rem!important;margin-bottom:13px!important}
+.btn{border-radius:11px!important;padding:11px 17px!important;font-weight:650!important;box-shadow:none!important}.btn-primary{background:#3d7b5d!important}.btn-primary:hover{background:#2f6b50!important}.btn-secondary{background:#edf1ed!important;color:#214f3b!important;border:1px solid #dce4de!important}.btn-ghost{background:#fff!important;color:#2f6b50!important;border:1.5px solid #75a18b!important}.btn-danger{background:#a44750!important}
+select,input[type=text],input[type=number]{border:1.5px solid #d9e1dc!important;border-radius:10px!important;background:#fff!important}select:focus,input:focus{outline:none!important;border-color:#6f9d84!important;box-shadow:0 0 0 3px rgba(61,123,93,.12)!important}.pill{background:#edf3ee!important;color:#28583f!important;border:1px solid #dbe8df!important}
+.tablewrap{border:1px solid #dfe6e1!important;border-radius:13px!important;background:#fff!important;box-shadow:0 3px 12px rgba(27,52,40,.05)!important}table{font-size:.9rem!important}thead th{background:#214f3b!important;padding:12px 10px!important;font-weight:650!important}tbody td{padding:9px 10px!important;border-bottom:1px solid #e8ece9!important}tbody tr:nth-child(even),tbody tr:nth-child(even) td.rowlabel{background:#f4f7f4!important}tbody tr:nth-child(odd),tbody tr:nth-child(odd) td.rowlabel{background:#fff!important}tbody tr.cat-header td,tbody tr.cat-header td.rowlabel{background:#dce9e1!important;color:#214f3b!important;border-top:1px solid #cbdccf!important;border-bottom:1px solid #cbdccf!important;font-weight:750!important}tfoot tr.tot-riga td{background:#214f3b!important;border-top:2px solid #d6e0da!important;padding:9px 10px!important}td.tot{color:#84343c!important;border-left:2px solid #e1e7e3!important}td.qty-cell{color:#2f6b50!important;font-weight:700!important}td.qty-zero{color:#c2cbc5!important}
+.empty-state{padding:46px 22px!important;color:#718078!important}.empty-state .icon{font-size:0!important;width:74px;height:74px;margin:0 auto 15px;border-radius:22px;background:#e6f0e9;position:relative}.empty-state .icon:after{content:'+';font-size:32px;font-weight:300;color:#3d7b5d;position:absolute;inset:0;display:grid;place-items:center}
+.note-box{background:#fbf6e9!important;border-left:4px solid #c58a45!important;color:#675328!important;border-radius:0 10px 10px 0!important;padding:10px 14px!important}.section-title{color:#718078!important;font-size:.75rem!important;letter-spacing:.8px!important}.badge{border-radius:999px!important;padding:3px 9px!important;font-size:.68rem!important}.modal-backdrop{background:rgba(18,34,26,.58)!important;backdrop-filter:blur(3px)!important}.modal{background:#f7f5ef!important;border-radius:20px 20px 0 0!important;box-shadow:0 -8px 30px rgba(0,0,0,.16)!important}.dropzone{border:2px dashed #75a18b!important;background:#eef6f0!important;border-radius:14px!important}.toast{background:#18352a!important;border-radius:12px!important}
+`;
+ d.head.appendChild(s);
+ const h=d.querySelector('header h1');if(h){h.firstChild.textContent='GESTIONE ORDINI GELATO ';}
+ d.querySelectorAll('.empty-state .icon').forEach(x=>x.setAttribute('aria-hidden','true'));
+});
+</script>
+</body>
+</html>
