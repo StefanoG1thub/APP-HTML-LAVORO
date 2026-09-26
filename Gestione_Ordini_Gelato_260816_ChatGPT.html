@@ -356,6 +356,31 @@ td.qty-cell{color:#426b84}
  .section-title{color:#71808a}
 </style>
 
+
+<style id="chatgpt-build59">
+/* Build 59 — differenziazione delle due aree principali */
+#tabbar[data-active="lando"]{background:#294b61}
+#tabbar[data-active="generici"]{background:#526b7b}
+#tabbar[data-active="coop"]{background:#466879}
+#tabbar[data-active="totali"]{background:#3d596a}
+#tabbar[data-active="inventario"]{background:#5d7482}
+#tabbar[data-active="lando"] .active{background:#f6f5f1;color:#294b61}
+#tabbar[data-active="generici"] .active{background:#f6f5f1;color:#526b7b}
+#tabbar[data-active="coop"] .active{background:#f6f5f1;color:#466879}
+#tabbar[data-active="totali"] .active{background:#f6f5f1;color:#3d596a}
+#tabbar[data-active="inventario"] .active{background:#f6f5f1;color:#5d7482}
+
+/* righe alternate: blu più leggibile ma ancora elegante */
+tbody tr:nth-child(even),
+tbody tr:nth-child(even) td.rowlabel{background:#dce9ef}
+tbody tr:nth-child(odd),
+tbody tr:nth-child(odd) td.rowlabel{background:#fffdf9}
+.preview-row:not(.header-row):nth-of-type(even){background:#dce9ef}
+
+/* categoria: un gradino sopra le righe, senza diventare troppo carica */
+tbody tr.cat-header td,
+tbody tr.cat-header td.rowlabel{background:#668aa1!important}
+</style>
 </head>
 <body>
 
@@ -1303,6 +1328,7 @@ const TABS = [
 
 function renderTabs(){
   const bar = document.getElementById('tabbar');
+  bar.dataset.active = State.gruppoAttivo;
   bar.innerHTML = TABS.map(t => `<button data-tab="${t.id}" class="${State.gruppoAttivo===t.id?'active':''}">${t.label}</button>`).join('');
   bar.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
