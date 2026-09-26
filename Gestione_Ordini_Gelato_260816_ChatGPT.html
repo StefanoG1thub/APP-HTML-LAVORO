@@ -381,7 +381,11 @@ tbody tr:nth-child(odd) td.rowlabel{background:#fffdf9}
 tbody tr.cat-header td,
 tbody tr.cat-header td.rowlabel{background:#668aa1!important}
 </style>
-</head>
+<style id="chatgpt-build60">
+/* Build 60 — colori dedicati per referenze speciali */
+td.rowlabel span[style*="#287246"],
+td.rowlabel span[style*="#16788f"]{letter-spacing:.05px}
+</style></head>
 <body>
 
 <header>
@@ -1229,8 +1233,8 @@ function nomeProdottoTag(cod){
   const prod = CATALOGO[cod];
   if (!prod) return '???';
   let stile = '';
-  if (prod.colore === 'verde') stile = 'color:#3f6b3e; font-weight:700;';
-  else if (prod.colore === 'azzurro') stile = 'color:#2a7d9c; font-weight:700;';
+  if (prod.colore === 'verde') stile = 'color:#287246; font-weight:800;';
+  else if (prod.colore === 'azzurro') stile = 'color:#16788f; font-weight:800;';
   const pallino = prod.colore === 'verde' ? '🟢 ' : (prod.colore === 'azzurro' ? '🔵 ' : '');
   return `<span style="${stile}">${pallino}${prod.nome}</span>`;
 }
